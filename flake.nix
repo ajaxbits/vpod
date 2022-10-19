@@ -16,6 +16,10 @@
         };
         
         rust-env = pkgs.rust-bin.selectLatestNightlyWith (toolchain: toolchain.default);
+        
+        server = pkgs.writeShellScriptBin "server" ''
+          ${pkgs.python3}/bin/python -m http.server 3000
+        '';
       in
       with pkgs;
       {
@@ -25,6 +29,7 @@
             pkgconfig
             
             rust-env
+            server
           ];
 
         };
