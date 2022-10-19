@@ -30,7 +30,11 @@
             
             rust-env
             server
+            
+            yt-dlp
+            yq
           ];
+          
 
         };
       }
