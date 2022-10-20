@@ -5,35 +5,33 @@ use rss::extension::ExtensionBuilder;
 use rss::{ChannelBuilder, Enclosure, EnclosureBuilder, Guid, GuidBuilder, Item, ItemBuilder};
 use std::collections::BTreeMap;
 use std::fs::File;
-use std::path::PathBuf;
-use ytd_rs::{Arg, YoutubeDL};
+use std::path::Path;
+
+use youtube_dl::{YoutubeDl, YoutubeDlOutput};
 
 use uuid::Uuid;
-
-mod podcast_index_ext;
 
 fn get_yt_link() -> String {
     let url = "https://www.youtube.com/watch?v=HMUugZ3DxH8";
 
-    let args = vec![
-        Arg::new("--quiet"),
-        Arg::new("-g"),
-        Arg::new("--extract-audio"),
-        Arg::new_with_arg("--output", "ba[ext=m4a].%(ext)s"), // TODO why is the ext required?? Added from a yt-dlp error
-    ];
+    let path = Path::new(
+        "/nix/store/r30s4a48b3n5icgmwgm4ds6a9yigffwq-python3.10-yt-dlp-2022.10.4/bin/yt-dlp",
+    );
 
-    let ytd = YoutubeDL::new(&PathBuf::from("/tmp"), args, url)
-        .expect("could not structure yt-dlp command");
+    let mut ytd = YoutubeDl::new(url);
+    let ytd = ytd
+        .socket_timeout("15")
+        .youtube_dl_path(path)
+        .format("bestaudio[protocol^=http][abr<40]");
 
-    let url = ytd
-        .download()
-        .expect("yt-dlp command did not execute correctly");
+    let ytd = ytd.run().expect("failed to run youtube-dlp command");
 
-    // println!("{url:#?}");
-
-    let url = url.output().trim();
-
-    url.to_owned()
+    if let YoutubeDlOutput::SingleVideo(boxed_video) = ytd {
+        let video = *boxed_video;
+        video.url.unwrap()
+    } else {
+        "https://www.google.com".to_string()
+    }
 }
 
 fn build_episode() -> Item {
