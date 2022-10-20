@@ -4,19 +4,45 @@ use rss::extension::itunes::{
 use rss::extension::ExtensionBuilder;
 use rss::{ChannelBuilder, Enclosure, EnclosureBuilder, Guid, GuidBuilder, Item, ItemBuilder};
 use std::collections::BTreeMap;
-use std::fs::{self, File};
-use std::io::{BufReader, BufWriter, Error};
+use std::fs::File;
+use std::path::PathBuf;
+use ytd_rs::{Arg, YoutubeDL};
+
 use uuid::Uuid;
 
 mod podcast_index_ext;
+
+fn get_yt_link() -> String {
+    let url = "https://www.youtube.com/watch?v=HMUugZ3DxH8";
+
+    let args = vec![
+        Arg::new("--quiet"),
+        Arg::new("-g"),
+        Arg::new("--extract-audio"),
+        Arg::new_with_arg("--output", "ba[ext=m4a].%(ext)s"), // TODO why is the ext required?? Added from a yt-dlp error
+    ];
+
+    let ytd = YoutubeDL::new(&PathBuf::from("/tmp"), args, url)
+        .expect("could not structure yt-dlp command");
+
+    let url = ytd
+        .download()
+        .expect("yt-dlp command did not execute correctly");
+
+    // println!("{url:#?}");
+
+    let url = url.output().trim();
+
+    url.to_owned()
+}
 
 fn build_episode() -> Item {
     let title = "Some Title".to_owned();
 
     let enclosure: Enclosure = EnclosureBuilder::default()
-        .mime_type("audio/mpeg".to_owned())
+        .mime_type("audio/webm".to_owned())
         .length("SomeLengthInBytes".to_owned())
-        .url("https://server/location/of/episode.mp3".to_owned())
+        .url(get_yt_link())
         .build();
 
     let guid: Guid = GuidBuilder::default()
