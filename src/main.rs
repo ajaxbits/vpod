@@ -3,42 +3,40 @@ use rss::extension::itunes::{
 };
 use rss::extension::ExtensionBuilder;
 use rss::{ChannelBuilder, Enclosure, EnclosureBuilder, Guid, GuidBuilder, Item, ItemBuilder};
-use std::collections::BTreeMap;
-use std::fs::File;
-use std::path::Path;
-
-use youtube_dl::{YoutubeDl, YoutubeDlOutput};
-
+use std::{collections::BTreeMap, env, fs::File, path::PathBuf};
 use uuid::Uuid;
+use youtube_dl::model::SingleVideo;
+use ytd_rs::{Arg, YoutubeDL};
 
 fn get_yt_link() -> String {
     let url = "https://www.youtube.com/watch?v=HMUugZ3DxH8";
+    let server_url = env::var("NGROK_URL").expect("NGROK_URL is not set...");
 
-    let path = Path::new(
-        "/nix/store/r30s4a48b3n5icgmwgm4ds6a9yigffwq-python3.10-yt-dlp-2022.10.4/bin/yt-dlp",
-    );
+    let args = vec![
+        Arg::new("--quiet"),
+        Arg::new_with_arg("--format", "bestaudio[protocol^=http][abr<100][ext=m4a]"),
+        Arg::new_with_arg("--output", "%(uploader)s/%(id)s.%(ext)s"),
+        Arg::new("--no-simulate"),
+        Arg::new("--dump-json"),
+    ];
+    let path = PathBuf::from("./.");
+    let ytd = YoutubeDL::new(&path, args, url).unwrap();
 
-    let mut ytd = YoutubeDl::new(url);
-    let ytd = ytd
-        .socket_timeout("15")
-        .youtube_dl_path(path)
-        .format("bestaudio[protocol^=http][abr<40]");
+    let download = ytd.download().unwrap();
 
-    let ytd = ytd.run().expect("failed to run youtube-dlp command");
+    let json: SingleVideo = serde_json::from_str(download.output()).unwrap();
 
-    if let YoutubeDlOutput::SingleVideo(boxed_video) = ytd {
-        let video = *boxed_video;
-        video.url.unwrap()
-    } else {
-        "https://www.google.com".to_string()
-    }
+    let creator: &str = &json.uploader.unwrap();
+    let id: &str = &json.id;
+
+    format!("{server_url}/{creator}/{id}.m4a")
 }
 
 fn build_episode() -> Item {
     let title = "Some Title".to_owned();
 
     let enclosure: Enclosure = EnclosureBuilder::default()
-        .mime_type("audio/webm".to_owned())
+        .mime_type("audio/mp3".to_owned())
         .length("SomeLengthInBytes".to_owned())
         .url(get_yt_link())
         .build();
