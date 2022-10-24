@@ -15,7 +15,9 @@
           inherit system overlays;
         };
         
-        rust-env = pkgs.rust-bin.selectLatestNightlyWith (toolchain: toolchain.default);
+        rust-env = pkgs.rust-bin.selectLatestNightlyWith (toolchain: toolchain.default.override {
+          extensions = [ "rust-src" ];
+        });
         
         server = pkgs.writeShellScriptBin "server" ''
           ${pkgs.python3}/bin/python -m http.server 3000
