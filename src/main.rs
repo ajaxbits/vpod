@@ -6,33 +6,40 @@ use rss::{ChannelBuilder, Enclosure, EnclosureBuilder, Guid, GuidBuilder, Item, 
 use std::{collections::BTreeMap, env, fs::File, path::PathBuf};
 use uuid::Uuid;
 use youtube_dl::model::SingleVideo;
-use ytd_rs::{Arg, YoutubeDL};
+use ytd_rs::{Arg, YoutubeDL, YoutubeDLResult};
 
-fn get_yt_link() -> String {
+mod server;
+
+fn invoke_ytd() -> YoutubeDLResult {
     let url = "https://www.youtube.com/watch?v=HMUugZ3DxH8";
-    let server_url = env::var("NGROK_URL").unwrap_or_else(|_err| {
-        eprintln!("$NGROK_URL not found. Defaulting to localhost...");
-        "127.0.0.1".to_string()
-    });
 
     let args = vec![
         Arg::new("--quiet"),
         Arg::new_with_arg("--format", "bestaudio[protocol^=http][abr<100][ext=m4a]"),
-        Arg::new_with_arg("--output", "%(uploader)s/%(id)s.%(ext)s"),
+        Arg::new_with_arg("--output", "%(uploader)s/%(uploader_id)s%(id)s.%(ext)s"),
         Arg::new("--no-simulate"),
         Arg::new("--dump-json"),
     ];
     let path = PathBuf::from("./.");
     let ytd = YoutubeDL::new(&path, args, url).unwrap();
 
-    let download = ytd.download().unwrap();
+    ytd.download().expect("youtube-dlp command failed")
+}
+fn get_ytd_out(ytd: YoutubeDLResult) -> SingleVideo {
+    serde_json::from_str(ytd.output())
+        .expect("could not serialize the ytd result into a SingleVideo")
+}
 
-    let json: SingleVideo = serde_json::from_str(download.output()).unwrap();
+fn get_link(video: SingleVideo) -> String {
+    let server_url: String = env::var("NGROK_URL").unwrap_or_else(|_err| {
+        eprintln!("$NGROK_URL not found. Defaulting to localhost...");
+        "127.0.0.1".to_string()
+    });
+    let uploader: &str = &video.uploader.expect("could not get uploader");
+    let uploader_id: &str = &video.uploader_id.expect("could not get uploader_id");
+    let id: &str = &video.id;
 
-    let creator: &str = &json.uploader.unwrap();
-    let id: &str = &json.id;
-
-    format!("{server_url}/{creator}/{id}.m4a")
+    format!("{server_url}/{uploader}/{uploader_id}{id}.m4a")
 }
 
 fn build_episode() -> Item {
@@ -41,7 +48,7 @@ fn build_episode() -> Item {
     let enclosure: Enclosure = EnclosureBuilder::default()
         .mime_type("audio/mp3".to_owned())
         .length("SomeLengthInBytes".to_owned())
-        .url(get_yt_link())
+        .url(get_link(get_ytd_out(invoke_ytd())))
         .build();
 
     let guid: Guid = GuidBuilder::default()
