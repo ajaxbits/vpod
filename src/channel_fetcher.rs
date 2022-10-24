@@ -1,7 +1,7 @@
 use futures::StreamExt;
 use ytextract::playlist;
 
-pub async fn fetch_info(id: String) -> Result<Vec<playlist::Video>, Box<dyn std::error::Error>> {
+async fn fetch_info(id: String) -> Result<Vec<playlist::Video>, Box<dyn std::error::Error>> {
     let ytclient = ytextract::Client::new();
     let id: ytextract::channel::Id = id.parse()?;
     let channel = ytclient.channel(id).await?;
@@ -15,4 +15,15 @@ pub async fn fetch_info(id: String) -> Result<Vec<playlist::Video>, Box<dyn std:
         .collect();
 
     Ok(recents)
+}
+
+pub async fn get_recent_links(channel_id: String) -> Vec<String> {
+    let links = self::fetch_info(channel_id).await.unwrap();
+    links
+        .into_iter()
+        .map(|video| {
+            let video_id = video.id().to_string();
+            format!("https://www.youtube.com/watch?v={video_id}")
+        })
+        .collect()
 }

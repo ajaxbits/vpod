@@ -7,6 +7,7 @@ use std::{collections::BTreeMap, env, fs::File, path::PathBuf};
 use uuid::Uuid;
 use youtube_dl::model::SingleVideo;
 use ytd_rs::{Arg, YoutubeDL, YoutubeDLResult};
+use ytextract::playlist;
 
 mod channel_fetcher;
 // mod server;
@@ -40,18 +41,22 @@ async fn get_link(video: SingleVideo) -> String {
     let uploader_id: &str = &video.uploader_id.expect("could not get uploader_id");
     let id: &str = &video.id;
 
-    channel_fetcher::fetch_info(video.channel_id.unwrap().to_owned())
-        .await
-        .unwrap();
+    let recent_videos =
+        channel_fetcher::get_recent_links(video.channel_id.unwrap().to_owned()).await;
+
+    let latest = recent_videos.into_iter().nth(0).unwrap();
+
+    println!("{latest}");
 
     format!("{server_url}/{uploader}/{uploader_id}{id}.m4a")
 }
 
-async fn build_episode() -> Item {
-    let title = "Some Title".to_owned();
+async fn build_episode(video: playlist::Video) -> Item {
+    let title = video.title().to_owned();
 
     let enclosure: Enclosure = EnclosureBuilder::default()
-        .mime_type("audio/mp3".to_owned())
+        .mime_type("audio/m4a".to_owned())
+        // TODO what is this length???
         .length("SomeLengthInBytes".to_owned())
         .url(get_link(get_ytd_out(invoke_ytd())).await)
         .build();
@@ -63,8 +68,8 @@ async fn build_episode() -> Item {
 
     let itunes_metadata: ITunesItemExtension = ITunesItemExtensionBuilder::default()
         .episode(Some("1".to_owned()))
-        .author(Some("Alex Jackson".to_owned()))
-        .duration(Some("SomeDuration".to_owned()))
+        .author(Some(video.channel().name().to_string()))
+        .duration(Some(video.length().as_secs().to_string()))
         .block(Some("Yes".to_string()))
         .build();
 
@@ -81,7 +86,7 @@ async fn build_episode() -> Item {
 
     let item: Item = ItemBuilder::default()
         .guid(Some(guid))
-        .pub_date(Some("DATE".to_owned()))
+        .pub_date(Some(video..to_owned()))
         .title(Some(title))
         .extensions(BTreeMap::from([("itunes_title".to_owned(), itunes_title)])) // put <itunes:title> in there
         .itunes_ext(Some(itunes_metadata))
