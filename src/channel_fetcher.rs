@@ -1,29 +1,24 @@
-use futures::StreamExt;
-use ytextract::playlist;
+use std::path::PathBuf;
 
-async fn fetch_info(id: String) -> Result<Vec<playlist::Video>, Box<dyn std::error::Error>> {
-    let ytclient = ytextract::Client::new();
-    let id: ytextract::channel::Id = id.parse()?;
-    let channel = ytclient.channel(id).await?;
-    let uploads = channel.uploads().await?;
-    let recents: Vec<playlist::Video> = uploads
-        .take(10)
-        .collect::<Vec<_>>()
-        .await
-        .into_iter()
-        .filter_map(|video| video.ok())
-        .collect();
+use youtube_dl::SingleVideo;
+use ytd_rs::{error::YoutubeDLError, Arg, YoutubeDL};
 
-    Ok(recents)
-}
+pub fn get_recent_videos(channel_id: String) -> Result<Vec<SingleVideo>, YoutubeDLError> {
+    let link = format!("https://www.youtube.com/channel/{channel_id}");
 
-pub async fn get_recent_links(channel_id: String) -> Vec<String> {
-    let links = self::fetch_info(channel_id).await.unwrap();
-    links
-        .into_iter()
-        .map(|video| {
-            let video_id = video.id().to_string();
-            format!("https://www.youtube.com/watch?v={video_id}")
-        })
-        .collect()
+    let args = vec![
+        Arg::new("--quiet"),
+        Arg::new("--dump-json"),
+        Arg::new_with_arg("--playlist-end", "20"),
+    ];
+
+    let result = YoutubeDL::new(&PathBuf::from("/tmp"), args, &link)?.download()?;
+
+    let result = result
+        .output()
+        .split_terminator("\n")
+        .filter_map(|s| serde_json::from_str(s).ok())
+        .collect::<Vec<SingleVideo>>();
+
+    Ok(result)
 }
