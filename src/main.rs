@@ -8,7 +8,8 @@ use uuid::Uuid;
 use youtube_dl::model::SingleVideo;
 use ytd_rs::{Arg, YoutubeDL, YoutubeDLResult};
 
-mod server;
+mod channel_fetcher;
+// mod server;
 
 fn invoke_ytd() -> YoutubeDLResult {
     let url = "https://www.youtube.com/watch?v=HMUugZ3DxH8";
@@ -30,7 +31,7 @@ fn get_ytd_out(ytd: YoutubeDLResult) -> SingleVideo {
         .expect("could not serialize the ytd result into a SingleVideo")
 }
 
-fn get_link(video: SingleVideo) -> String {
+async fn get_link(video: SingleVideo) -> String {
     let server_url: String = env::var("NGROK_URL").unwrap_or_else(|_err| {
         eprintln!("$NGROK_URL not found. Defaulting to localhost...");
         "127.0.0.1".to_string()
@@ -39,16 +40,20 @@ fn get_link(video: SingleVideo) -> String {
     let uploader_id: &str = &video.uploader_id.expect("could not get uploader_id");
     let id: &str = &video.id;
 
+    channel_fetcher::fetch_info(video.channel_id.unwrap().to_owned())
+        .await
+        .unwrap();
+
     format!("{server_url}/{uploader}/{uploader_id}{id}.m4a")
 }
 
-fn build_episode() -> Item {
+async fn build_episode() -> Item {
     let title = "Some Title".to_owned();
 
     let enclosure: Enclosure = EnclosureBuilder::default()
         .mime_type("audio/mp3".to_owned())
         .length("SomeLengthInBytes".to_owned())
-        .url(get_link(get_ytd_out(invoke_ytd())))
+        .url(get_link(get_ytd_out(invoke_ytd())).await)
         .build();
 
     let guid: Guid = GuidBuilder::default()
@@ -88,7 +93,8 @@ fn build_episode() -> Item {
     item
 }
 
-fn main() {
+#[tokio::main]
+async fn main() {
     let itunes_metadata = ITunesChannelExtensionBuilder::default()
         .author(Some("Alex Jackson".to_owned()))
         .build();
@@ -110,7 +116,7 @@ fn main() {
         .link("http://test.com".to_owned())
         .description("A Test Feed".to_owned())
         .itunes_ext(Some(itunes_metadata))
-        .items(vec![build_episode()])
+        .items(vec![build_episode().await])
         .build();
 
     let rss_file = File::create("test.xml").expect("could not create test.xml");

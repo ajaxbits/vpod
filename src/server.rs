@@ -1,6 +1,11 @@
+use super::{get_link, get_ytd_out, invoke_ytd};
 use std::net::SocketAddr;
 
-use axum::{response::IntoResponse, routing::get, Router};
+use axum::{extract::Path, response::IntoResponse, routing::get, Router};
+
+async fn get_episode(Path((name, ep)): Path<(String, String)>) -> impl IntoResponse {
+    get_link(get_ytd_out(invoke_ytd()))
+}
 
 pub async fn server() {
     let app = Router::new().route("/:name/:ep", get(get_episode));
@@ -10,8 +15,4 @@ pub async fn server() {
         .serve(app.into_make_service())
         .await
         .expect("could not start server");
-}
-
-async fn get_episode() -> impl IntoResponse {
-    todo!()
 }
