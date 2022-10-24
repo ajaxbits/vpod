@@ -10,7 +10,10 @@ use ytd_rs::{Arg, YoutubeDL};
 
 fn get_yt_link() -> String {
     let url = "https://www.youtube.com/watch?v=HMUugZ3DxH8";
-    let server_url = env::var("NGROK_URL").expect("NGROK_URL is not set...");
+    let server_url = env::var("NGROK_URL").unwrap_or_else(|_err| {
+        eprintln!("$NGROK_URL not found. Defaulting to localhost...");
+        "127.0.0.1".to_string()
+    });
 
     let args = vec![
         Arg::new("--quiet"),
