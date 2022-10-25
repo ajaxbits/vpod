@@ -9,9 +9,13 @@ use axum::{
 };
 use tokio::process::Command;
 
+mod gen_feed;
+
 #[tokio::main]
 async fn main() {
-    let app = Router::new().route("/:id", get(handler));
+    let app = Router::new()
+        .route("/:id", get(stream_audio))
+        .route("/", get(serve_rss));
 
     let addr = SocketAddr::from_str("127.0.0.1:3000").expect("could not parse socketaddr");
     axum::Server::bind(&addr)
@@ -20,7 +24,7 @@ async fn main() {
         .expect("could not start server");
 }
 
-async fn handler(Path(id): Path<String>) -> impl IntoResponse {
+async fn stream_audio(Path(id): Path<String>) -> impl IntoResponse {
     let url = format!("https://www.youtube.com/watch?v={id}");
     let ytdl = Command::new("yt-dlp")
         .arg("--quiet")
@@ -38,4 +42,8 @@ async fn handler(Path(id): Path<String>) -> impl IntoResponse {
     headers.insert(header::CONTENT_TYPE, "audio/m4a".parse().unwrap());
 
     (StatusCode::OK, headers, body)
+}
+
+async fn serve_rss() -> impl IntoResponse {
+    "todo!"
 }
