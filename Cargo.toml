@@ -10,6 +10,7 @@ axum = "0.5.17"
 chrono = { version = "0.4.22", features = ["serde"] }
 color-eyre = "0.6.2"
 futures = "0.3.25"
+html-escape = "0.2.11"
 rss = { version = "2.0.1", features = ["serde", "url", "mime", "validation"] }
 serde = { version = "1.0.145", features = ["derive"] }
 serde_derive = "1.0.145"
