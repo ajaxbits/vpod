@@ -52,10 +52,10 @@ struct PodInfo {
     // #[serde(default = "default_guid")]
     guid: Guid,
     // #[serde(default = "default_guid")]
-    episode: u64,
+    // episode: u64,
     title: String,
     duration_str: String,
-    duration_millis: u32,
+    duration_secs: i64,
     author: String,
     date: NaiveDate,
     link: String,
@@ -64,14 +64,14 @@ struct PodInfo {
 
 impl From<SingleVideo> for PodInfo {
     fn from(video: SingleVideo) -> Self {
-        let duration: u32 = serde_json::from_value(video.duration.unwrap()).unwrap();
-        let duration = chrono::NaiveTime::from_num_seconds_from_midnight(duration, 0);
+        let duration = video.duration.unwrap().as_i64;
+        let duration = Duration::seconds(duration);
         PodInfo {
             guid: default_guid(),
-            episode: todo!(),
+            // episode: todo!(),
             title: video.title,
             duration_str: duration.format("%H:%M:%S").to_string(),
-            duration_millis: todo!(),
+            duration_secs: duration.num_seconds(),
             author: todo!(),
             date: todo!(),
             link: todo!(),
