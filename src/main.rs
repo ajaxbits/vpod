@@ -1,20 +1,22 @@
-use std::{net::SocketAddr, str::FromStr};
-
 use axum::{
     extract::Path,
-    http::{header, HeaderMap, StatusCode},
+    http::{Request, StatusCode},
     response::IntoResponse,
-    routing::get,
+    routing::{get, get_service},
     Router,
 };
-use tokio::process::Command;
+use gen_feed::gen_feed;
+use std::{io, net::SocketAddr, path::PathBuf, str::FromStr};
+use tower::ServiceExt;
+use ytd_rs::Arg;
 
+mod channel_fetcher;
 mod gen_feed;
 
 #[tokio::main]
 async fn main() {
     let app = Router::new()
-        .route("/:id", get(stream_audio))
+        .route("/:id", get(return_audio))
         .route("/", get(serve_rss));
 
     let addr = SocketAddr::from_str("127.0.0.1:3000").expect("could not parse socketaddr");
@@ -24,26 +26,38 @@ async fn main() {
         .expect("could not start server");
 }
 
-async fn stream_audio(Path(id): Path<String>) -> impl IntoResponse {
+async fn return_audio(Path(id): Path<String>) -> impl IntoResponse {
     let url = format!("https://www.youtube.com/watch?v={id}");
-    let ytdl = Command::new("yt-dlp")
-        .arg("--quiet")
-        .arg("--format")
-        .arg("bestaudio[protocol^=http][abr<100][ext=m4a]")
-        .arg("-o")
-        .arg("-")
-        .arg(url)
-        .output()
-        .await;
+    let args = vec![
+        Arg::new("--quiet"),
+        Arg::new_with_arg("--format", "bestaudio[protocol^=http][abr<100][ext=m4a]"),
+        Arg::new("--embed-metadata"),
+        Arg::new("--embed-thumbnail"),
+        Arg::new_with_arg("--output", "%(id)s.m4a"),
+    ];
+    let _ytd = ytd_rs::YoutubeDL::new(&PathBuf::from("./."), args, &url)
+        .unwrap()
+        .download();
+    let path = format!("./{id}.m4a");
 
-    let body = ytdl.unwrap().stdout;
+    let req = Request::builder()
+        .uri(id)
+        .body(axum::body::Body::empty())
+        .unwrap();
 
-    let mut headers = HeaderMap::new();
-    headers.insert(header::CONTENT_TYPE, "audio/m4a".parse().unwrap());
+    let service =
+        get_service(tower_http::services::ServeFile::new(path)).handle_error(handle_error);
 
-    (StatusCode::OK, headers, body)
+    let result = service.oneshot(req).await;
+
+    result
 }
 
 async fn serve_rss() -> impl IntoResponse {
+    gen_feed("TODO".to_owned()).await;
     "todo!"
+}
+
+async fn handle_error(_err: io::Error) -> impl IntoResponse {
+    (StatusCode::INTERNAL_SERVER_ERROR, "Something went wrong...")
 }
