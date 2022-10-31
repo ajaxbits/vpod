@@ -7,6 +7,7 @@ use rss::{
     GuidBuilder, Item, ItemBuilder,
 };
 use std::collections::BTreeMap;
+use std::env;
 
 #[derive(Debug, Clone)]
 pub struct Episode {
@@ -83,7 +84,6 @@ impl From<youtube_dl::SingleVideo> for Episode {
         ));
 
         fn gen_description(description: Option<String>) -> String {
-            // "From the creators of the original Fallout games comes Arcanum. A fantasy RPG about the dynamics between technology and magic, and the endless despicability of gnomes.\nSupport the channel at: https://www.patreon.com/mandaloregaming or https://www.paypal.me/MandaloreGaming\nI take video suggestions at mandaloremovies@gmail.com\nTwitter: https://twitter.com/Lord_Mandalore\nBig thanks to @Branzoles for his artistic contributions.\n00:00 - Intro\n00:37 - Issues & Fixes\n01:50 - The World of Arcanum\n05:18 - Game Intro\n06:44 - Visuals\n07:53 - Music & Sound Design\n12:12 - Gameplay Mechanics\n24:42 - Questing & Story\n26:46 - Story (SPOILERS)\n48:42 - Conclusions\n50:04 - Credits\n51:28 - Baah\n\n#Arcanum #ArcanumReview #ArcanumPC #Troika",
             if let Some(description) = description {
                 let description: String = description
                     .split("\n")
@@ -95,7 +95,6 @@ impl From<youtube_dl::SingleVideo> for Episode {
                         )
                     })
                     .collect();
-                println!("{}", description.clone());
                 description
             } else {
                 String::new()
@@ -124,7 +123,11 @@ impl From<youtube_dl::SingleVideo> for Episode {
                 .value(&video.id)
                 .permalink(false)
                 .build(),
-            url: format!("https://0d1f-73-45-179-121.ngrok.io/{}", &video.id),
+            url: format!(
+                "{}/{}",
+                env::var("NGROK_URL").expect("NGROK_URL not found!!"),
+                &video.id
+            ),
             episode: None,
             title: video.title,
             duration_str: gen_duration_str(duration),

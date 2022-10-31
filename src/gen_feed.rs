@@ -1,16 +1,15 @@
-use rss::extension::itunes::ITunesChannelExtensionBuilder;
-use rss::{ChannelBuilder, Item};
+use rss::Channel;
+use std::fs::File;
 use std::io::BufReader;
 use std::process::Command;
-use std::{collections::BTreeMap, fs::File};
 use youtube_dl::model::SingleVideo;
 use youtube_dl::Playlist;
 
-use super::episode::Episode;
-use super::feed::Feed;
+use crate::episode::Episode;
+use crate::feed::Feed;
 
-fn get_recent_videos(channel_id: String) -> Vec<SingleVideo> {
-    let link = format!("https://www.youtube.com/channel/{channel_id}");
+fn get_recent_videos(channel_name: String) -> Vec<SingleVideo> {
+    let link = format!("https://www.youtube.com/c/{channel_name}");
 
     let command = Command::new("which").arg("yt-dlp").output().unwrap();
 
@@ -36,97 +35,27 @@ fn get_recent_videos(channel_id: String) -> Vec<SingleVideo> {
         .entries
         .expect("could not extract videos from Playlist item");
 
-    // println!("{videos:#?}");
-
     videos
 }
 
-fn build_episode(video: SingleVideo) -> Item {
-    let title = &video.title;
-    let nv = video.clone();
-}
-
-fn read_feed(channel_name: String) -> Result<rss::Channel, rss::Error> {
+pub fn read_feed(channel_name: String) -> Result<Feed, rss::Error> {
     let file = format!("{channel_name}.xml");
     let file = File::open(file).map_err(|err| rss::Error::Xml(quick_xml::Error::Io(err)))?;
-    let channel = rss::Channel::read_from(BufReader::new(file))?;
-    Ok(channel)
+    let feed: Feed = rss::Channel::read_from(BufReader::new(file))?.into();
+
+    Ok(feed)
 }
 
-fn gen_new_feed(current_feed: rss::Channel, new_items: Vec<Episode>) -> Vec<Episode> {
-    let old_items: Vec<Episode> = current_feed.into_items().into();
+pub async fn gen_feed(channel_name: String) -> String {
+    let feed = Feed::new_from_name(&channel_name);
 
-    let old_ids = old_items
+    let episodes: Vec<Episode> = get_recent_videos(channel_name)
         .into_iter()
-        .map(|item| item.guid.unwrap().value)
-        .collect::<Vec<String>>();
-
-    // FIXME this implementation is quadratic
-    let new_episodes: Vec<Episode> = new_items
-        .into_iter()
-        .filter(|item| !old_ids.contains(&item.guid.value))
+        .map(|vid| Episode::from(vid))
         .collect();
+    let feed = Feed::add_episodes(feed, episodes);
 
-    // assuming that old_episodes is chronological, most-recent first
-    let mut latest_number: i32 = old_items
-        .clone()
-        .into_iter()
-        .next()
-        .unwrap()
-        .itunes_ext()
-        .unwrap()
-        .episode()
-        .unwrap()
-        .parse()
-        .unwrap();
-
-    let fixed_new_episodes: Vec<Episode> = new_episodes
-        .into_iter()
-        .rev()
-        .map(|episode| {
-            latest_number + 1;
-            episode.update_ep_number(latest_number + 1)
-        })
-        .collect::<Vec<Episode>>()
-        .into_iter()
-        .chain()
-        .collect();
-}
-
-pub async fn gen_feed(channel_id: String) {
-    let channel_id = "UCNmv1Cmjm3Hk8Vc9kIgv0AQ".to_owned();
-    let recents = get_recent_videos(channel_id);
-
-    let latest: Episode = recents.clone().into_iter().nth(0).unwrap().into();
-
-    let ep = build_episode(latest);
-    let itunes_metadata = ITunesChannelExtensionBuilder::default()
-        .author(Some("Alex Jackson".to_owned()))
-        .build();
-
-    let itunes_namespaces = BTreeMap::from([
-        (
-            "itunes".to_owned(),
-            "http://www.itunes.com/dtds/podcast-1.0.dtd".to_owned(),
-        ),
-        (
-            "content".to_owned(),
-            "http://purl.org/rss/1.0/modules/content/".to_owned(),
-        ),
-    ]);
-
-    let channel = ChannelBuilder::default()
-        .namespaces(itunes_namespaces)
-        .title("Test Title".to_owned())
-        .link("http://test.com".to_owned())
-        .description("A Test Feed".to_owned())
-        .itunes_ext(Some(itunes_metadata))
-        .items(vec![ep])
-        .build();
-
-    let rss_file = File::create("test.xml").expect("could not create test.xml");
-
-    channel
-        .write_to(rss_file)
-        .expect("could not write to rss_file");
+    let channel = Channel::from(feed);
+    channel.write_to(std::io::sink()).unwrap(); // write to the channel to a writer
+    channel.to_string()
 }

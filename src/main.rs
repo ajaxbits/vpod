@@ -6,11 +6,10 @@ use axum::{
     Router,
 };
 use gen_feed::gen_feed;
-use std::{io, net::SocketAddr, path::PathBuf, process::Command, str::FromStr};
+use std::{io, net::SocketAddr, path::PathBuf, str::FromStr};
 use tower::ServiceExt;
 use ytd_rs::Arg;
 
-mod channel_fetcher;
 mod episode;
 mod feed;
 mod gen_feed;
@@ -18,8 +17,8 @@ mod gen_feed;
 #[tokio::main]
 async fn main() {
     let app = Router::new()
-        .route("/:id", get(return_audio))
-        .route("/", get(serve_rss));
+        .route("/:channel_name", get(serve_rss))
+        .route("/ep/:id", get(return_audio));
 
     let addr = SocketAddr::from_str("127.0.0.1:3000").expect("could not parse socketaddr");
     axum::Server::bind(&addr)
@@ -55,9 +54,9 @@ async fn return_audio(Path(id): Path<String>) -> impl IntoResponse {
     result
 }
 
-async fn serve_rss() -> impl IntoResponse {
-    gen_feed("TODO".to_owned()).await;
-    "todo!"
+async fn serve_rss(Path(channel_name): Path<String>) -> impl IntoResponse {
+    let xml = gen_feed(channel_name).await;
+    (StatusCode::OK, xml)
 }
 
 async fn handle_error(_err: io::Error) -> impl IntoResponse {
