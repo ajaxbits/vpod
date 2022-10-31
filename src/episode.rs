@@ -23,7 +23,7 @@ pub struct Episode {
 }
 
 impl Episode {
-    fn update_ep_number(self, number: i32) -> Self {
+    pub fn update_ep_number(self, number: i32) -> Self {
         Episode {
             episode: Some(number),
             ..self

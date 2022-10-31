@@ -1,11 +1,10 @@
 use rss::{
-    extension::itunes::ITunesChannelExtensionBuilder, Channel, ChannelBuilder, ImageBuilder,
+    extension::itunes::ITunesChannelExtensionBuilder, Channel, ChannelBuilder, ImageBuilder, Item,
 };
 use std::{
     collections::{BTreeMap, HashMap},
     process::Command,
 };
-use youtube_dl::Playlist;
 
 use super::episode::Episode;
 
@@ -52,18 +51,20 @@ impl Feed {
                 .unwrap()
                 .into_iter()
                 .rev()
-                .find_map(|item| -> Option<&str> {
+                .find_map(|item| -> Option<String> {
                     let entry = item.as_object().unwrap();
                     if entry["id"].as_str() == Some("avatar_uncropped") {
                         Some(
                             entry["url"]
                                 .as_str()
-                                .expect("could not extract url as string for channel avatar"),
+                                .expect("could not extract url as string for channel avatar")
+                                .to_string(),
                         )
                     } else {
                         None
                     }
-                }),
+                })
+                .unwrap(),
             title: json["channel"]
                 .as_str()
                 .map(|val| val.to_owned())
@@ -107,7 +108,10 @@ impl From<Feed> for Channel {
             .episodes
             .unwrap()
             .values()
-            .map(|ep| ep.into())
+            .map(|ep| -> Item {
+                let ep = *ep;
+                ep.into()
+            })
             .collect();
 
         ChannelBuilder::default()
