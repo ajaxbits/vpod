@@ -124,7 +124,7 @@ impl From<youtube_dl::SingleVideo> for Episode {
                 .permalink(false)
                 .build(),
             url: format!(
-                "{}/{}",
+                "{}/ep/{}",
                 env::var("NGROK_URL").expect("NGROK_URL not found!!"),
                 &video.id
             ),
