@@ -1,4 +1,6 @@
-use rss::{extension::itunes::ITunesChannelExtensionBuilder, Channel, ChannelBuilder};
+use rss::{
+    extension::itunes::ITunesChannelExtensionBuilder, Channel, ChannelBuilder, ImageBuilder,
+};
 use std::{
     collections::{BTreeMap, HashMap},
     process::Command,
@@ -10,6 +12,7 @@ use super::episode::Episode;
 #[derive(Debug, Clone)]
 pub struct Feed {
     id: String,
+    image: String, //url
     title: String,
     author: String,
     description: String,
@@ -27,7 +30,7 @@ impl Feed {
             .trim();
 
         let command = Command::new(ytdlp_path)
-            .args(["--dump-single-json", "--flat-playlist"])
+            .args(["--dump-single-json", "--flat-playlist", "--write-thumbnail"])
             .arg(link)
             .output()
             .expect("yt-dlp ran with errors");
@@ -44,6 +47,23 @@ impl Feed {
                 .as_str()
                 .map(|val| val.to_owned())
                 .expect("could not parse json uploader_val"),
+            image: json["thumbnails"]
+                .as_array()
+                .unwrap()
+                .into_iter()
+                .rev()
+                .find_map(|item| -> Option<&str> {
+                    let entry = item.as_object().unwrap();
+                    if entry["id"].as_str() == Some("avatar_uncropped") {
+                        Some(
+                            entry["url"]
+                                .as_str()
+                                .expect("could not extract url as string for channel avatar"),
+                        )
+                    } else {
+                        None
+                    }
+                }),
             title: json["channel"]
                 .as_str()
                 .map(|val| val.to_owned())
@@ -82,19 +102,22 @@ impl From<Feed> for Channel {
             .author(Some(feed.author))
             .build();
 
+        let image = ImageBuilder::default().url(feed.image).build();
+        let episodes: Vec<Item> = feed
+            .episodes
+            .unwrap()
+            .values()
+            .map(|ep| ep.into())
+            .collect();
+
         ChannelBuilder::default()
             .namespaces(ITUNES_NAMESPACES)
+            .image(Some(image))
             .title(feed.title)
             .link(feed.link)
             .description(feed.description)
             .itunes_ext(Some(itunes_metadata))
-            .items(
-                feed.episodes
-                    .unwrap()
-                    .values()
-                    .map(|ep| Into::<rss::Item>::into(*ep))
-                    .collect::<Vec<rss::Item>>(),
-            )
+            .items(episodes)
             .build()
     }
 }
