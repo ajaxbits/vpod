@@ -5,7 +5,9 @@ use rss::extension::itunes::{
 use rss::extension::ExtensionBuilder;
 use rss::{ChannelBuilder, Enclosure, EnclosureBuilder, Guid, GuidBuilder, Item, ItemBuilder};
 use serde::{Deserialize, Serialize};
+use std::collections::HashSet;
 use std::default;
+use std::io::BufReader;
 use std::path::{Path, PathBuf};
 use std::process::Command;
 use std::str::FromStr;
@@ -62,6 +64,11 @@ struct PodInfo {
     description: String,
 }
 
+impl From<rss::Item> for PodInfo {
+    fn from()
+    
+}
+
 impl From<SingleVideo> for PodInfo {
     fn from(video: SingleVideo) -> Self {
         let duration = video
@@ -88,7 +95,12 @@ impl From<SingleVideo> for PodInfo {
                 let description: String = description
                     .split("\n")
                     .into_iter()
-                    .map(|line| format!("<p>{line}</p>"))
+                    .map(|line| {
+                        format!(
+                            "<p>{}</p>",
+                            html_escape::encode_text_to_string(line, &mut String::new())
+                        )
+                    })
                     .collect();
                 println!("{}", description.clone());
                 description
@@ -136,7 +148,26 @@ impl From<SingleVideo> for PodInfo {
     }
 }
 
-fn build_episode(episode: PodInfo) -> Item {
+impl PodInfo {
+    fn update_ep_number(&self, number: i32) -> Self {
+        PodInfo {
+            guid: self.guid,
+            episode: Some(number),
+            title: self.title,
+            duration_str: self.duration_str,
+            duration_secs: self.duration_secs,
+            author: self.author,
+            date: self.date,
+            link: self.link,
+            description: self.description,
+        }
+    }
+}
+
+fn build_episode(video: SingleVideo) -> Item {
+    let title = &video.title;
+    let nv = video.clone();
+
     let enclosure: Enclosure = EnclosureBuilder::default()
         .mime_type("audio/m4a".to_owned())
         .length(episode.duration_secs.to_string())
@@ -173,6 +204,52 @@ fn build_episode(episode: PodInfo) -> Item {
         .build();
 
     item
+}
+
+fn read_feed(channel_name: String) -> Result<rss::Channel, rss::Error> {
+    let file = format!("{channel_name}.xml");
+    let file = File::open(file).map_err(|err| rss::Error::Xml(quick_xml::Error::Io(err)))?;
+    let channel = rss::Channel::read_from(BufReader::new(file))?;
+    Ok(channel)
+}
+
+fn gen_new_feed(current_feed: rss::Channel, new_items: Vec<PodInfo>) -> Vec<PodInfo> {
+    let old_items: Vec<PodInfo> = current_feed.into_items().into();
+
+    let old_ids = old_items
+        .into_iter()
+        .map(|item| item.guid.unwrap().value)
+        .collect::<Vec<String>>();
+
+    // FIXME this implementation is quadratic
+    let new_episodes: Vec<PodInfo> = new_items
+        .into_iter()
+        .filter(|item| !old_ids.contains(&item.guid.value))
+        .collect();
+
+    // assuming that old_episodes is chronological, most-recent first
+    let mut latest_number: i32 = old_items
+        .clone()
+        .into_iter()
+        .next()
+        .unwrap()
+        .itunes_ext()
+        .unwrap()
+        .episode()
+        .unwrap()
+        .parse()
+        .unwrap();
+
+    let fixed_new_episodes: Vec<PodInfo> = new_episodes
+        .into_iter()
+        .rev()
+        .map(|episode| {
+            latest_number + 1;
+            episode.update_ep_number(latest_number + 1)
+        })
+        .collect::<Vec<PodInfo>>()
+        .into_iter()
+        .chain();
 }
 
 pub async fn gen_feed(channel_id: String) {
