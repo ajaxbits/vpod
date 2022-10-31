@@ -50,7 +50,8 @@ fn get_recent_videos(channel_id: String) -> Vec<SingleVideo> {
 
 #[derive(Debug)]
 struct PodInfo {
-    guid: Guid,
+    id: Guid,
+    url: String,
     episode: Option<i32>,
     title: String,
     duration_str: String,
@@ -114,10 +115,11 @@ impl From<SingleVideo> for PodInfo {
         }
 
         PodInfo {
-            guid: GuidBuilder::default()
-                .value(Uuid::new_v4().as_simple().to_string())
+            id: GuidBuilder::default()
+                .value(&video.id)
                 .permalink(false)
                 .build(),
+            url: format!("https://0d1f-73-45-179-121.ngrok.io/{}", &video.id),
             episode: None,
             title: video.title,
             duration_str: gen_duration_str(duration),
@@ -134,26 +136,17 @@ impl From<SingleVideo> for PodInfo {
     }
 }
 
-fn build_episode(video: SingleVideo) -> Item {
-    let title = &video.title;
-    let nv = video.clone();
-
+fn build_episode(episode: PodInfo) -> Item {
     let enclosure: Enclosure = EnclosureBuilder::default()
         .mime_type("audio/m4a".to_owned())
-        .length("".to_string())
-        // TODO fix
-        .url("https://www.google.com".to_string())
-        .build();
-
-    let guid: Guid = GuidBuilder::default()
-        .value(Uuid::new_v4().as_simple().to_string())
-        .permalink(false)
+        .length(episode.duration_secs.to_string())
+        .url(episode.url)
         .build();
 
     let itunes_metadata: ITunesItemExtension = ITunesItemExtensionBuilder::default()
         .episode(Some("1".to_owned()))
-        .author(Some(video.channel.unwrap()))
-        .duration(Some("".to_owned()))
+        .author(Some(episode.author))
+        .duration(Some(episode.duration_str))
         .block(Some("Yes".to_string()))
         .build();
 
@@ -164,33 +157,29 @@ fn build_episode(video: SingleVideo) -> Item {
         "itunes_title".to_owned(),
         vec![ExtensionBuilder::default()
             .name("itunes:title".to_owned())
-            .value(Some("this is the itunes title".to_owned()))
+            .value(Some(episode.title.clone()))
             .build()],
     )]);
 
     let item: Item = ItemBuilder::default()
-        .guid(Some(guid))
-        .pub_date(Some("Date".to_owned()))
-        .title(Some(title.to_owned()))
+        .guid(Some(episode.id))
+        .pub_date(Some(episode.date))
+        .title(Some(episode.title))
         .extensions(BTreeMap::from([("itunes_title".to_owned(), itunes_title)])) // put <itunes:title> in there
         .itunes_ext(Some(itunes_metadata))
         .enclosure(Some(enclosure))
-        .link(Some("ogYoutubeLinkForCosmeticReasonsOnly".to_owned()))
-        .description(Some("Some Description (goes in show notes)".to_string()))
+        .link(Some(episode.link))
+        .description(Some(episode.description))
         .build();
 
     item
 }
 
 pub async fn gen_feed(channel_id: String) {
-    let channel_id = "UClOGLGPOqlAiLmOvXW5lKbw".to_owned();
+    let channel_id = "UCNmv1Cmjm3Hk8Vc9kIgv0AQ".to_owned();
     let recents = get_recent_videos(channel_id);
 
-    let latest = recents.clone().into_iter().nth(0).unwrap();
-    let wow = latest.clone();
-    // println!("wow: {wow:#?}");
-    let wow2: PodInfo = latest.clone().into();
-    println!("wow2: {wow2:#?}");
+    let latest: PodInfo = recents.clone().into_iter().nth(0).unwrap().into();
 
     let ep = build_episode(latest);
     let itunes_metadata = ITunesChannelExtensionBuilder::default()
