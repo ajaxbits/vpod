@@ -6,11 +6,13 @@ use axum::{
     Router,
 };
 use gen_feed::gen_feed;
-use std::{io, net::SocketAddr, path::PathBuf, str::FromStr};
+use std::{io, net::SocketAddr, path::PathBuf, process::Command, str::FromStr};
 use tower::ServiceExt;
 use ytd_rs::Arg;
 
 mod channel_fetcher;
+mod episode;
+mod feed;
 mod gen_feed;
 
 #[tokio::main]
