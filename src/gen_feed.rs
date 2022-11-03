@@ -1,5 +1,7 @@
 use rss::Channel;
-use std::fs::File;
+use std::collections::HashMap;
+use std::env;
+use std::fs::{File, OpenOptions};
 use std::io::BufReader;
 use std::process::Command;
 use youtube_dl::model::SingleVideo;
@@ -8,8 +10,8 @@ use youtube_dl::Playlist;
 use crate::episode::Episode;
 use crate::feed::Feed;
 
-fn get_recent_videos(channel_name: String) -> Vec<SingleVideo> {
-    let link = format!("https://www.youtube.com/c/{channel_name}");
+fn get_recent_videos(cpfx: String, id: String) -> Vec<SingleVideo> {
+    let link = format!("https://www.youtube.com/{cpfx}/{id}");
 
     let command = Command::new("which").arg("yt-dlp").output().unwrap();
 
@@ -46,19 +48,32 @@ pub fn read_feed(channel_name: String) -> Result<Feed, rss::Error> {
     Ok(feed)
 }
 
-pub async fn gen_feed(channel_name: &str) -> String {
-    let path = format!("{channel_name}.xml");
-    // let feed = Feed::new(&channel_name);
+pub async fn gen_feed(path: String, feed: Feed, cpfx: String, id: String) {
+    let episodes: Vec<Episode> = get_recent_videos(cpfx, id)
+        .into_iter()
+        .map(Episode::from)
+        .collect();
+    let feed = Feed::add_episodes(feed, episodes);
 
-    // let episodes: Vec<Episode> = get_recent_videos(channel_name)
-    //     .into_iter()
-    //     .map(Episode::from)
-    //     .collect();
-    // let feed = Feed::add_episodes(feed, episodes);
+    let channel = Channel::from(feed);
+    let file = OpenOptions::new()
+        .read(true)
+        .write(true)
+        .open(&path)
+        .unwrap_or_else(|_| panic!("could not open {}", &path));
+    channel.write_to(file).unwrap();
 
-    // let channel = Channel::from(feed);
-    // let file = File::create(&path).unwrap_or_else(|_| panic!("could ot create {channel_name}.xml"));
-    // channel.write_to(file).unwrap();
-    // path
-    todo!()
+    let mut map = HashMap::new();
+    map.insert(
+        "urlprefix",
+        env::var("NGROK_URL").expect("NGROK_URL not found!!"),
+    );
+
+    let client = reqwest::Client::new();
+    client
+        .post("https://overcast.fm/ping")
+        .json(&map)
+        .send()
+        .await
+        .unwrap();
 }

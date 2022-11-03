@@ -7,7 +7,8 @@ use axum::{
     Router,
 };
 use core::panic;
-// use gen_feed::gen_feed;
+use futures::FutureExt;
+use gen_feed::gen_feed;
 use std::{fs::File, io, net::SocketAddr, path::PathBuf, str::FromStr};
 use tower::ServiceExt;
 use ytd_rs::Arg;
@@ -57,25 +58,25 @@ async fn return_audio(Path(id): Path<String>) -> impl IntoResponse {
 }
 
 async fn serve_rss(Path((cpfx, id)): Path<(String, String)>) -> impl IntoResponse {
-    let feed = feed::Feed::new(&cpfx, &id);
-
-    // let episodes: Vec<Episode> = get_recent_videos(channel_name)
-    //     .into_iter()
-    //     .map(Episode::from)
-    //     .collect();
-    // let feed = Feed::add_episodes(feed, episodes);
-
     let path = format!("{id}.xml");
-    let channel = rss::Channel::from(feed);
-    let file = File::create(&path).unwrap_or_else(|_| panic!("could ot create {id}.xml"));
-    channel.write_to(file).unwrap();
+
+    if let false = std::path::Path::new(&path).exists() {
+        let feed = feed::Feed::new(&cpfx, &id);
+        let channel = rss::Channel::from(feed.clone());
+
+        let file = File::create(&path).unwrap_or_else(|_| panic!("could ot create {id}.xml"));
+        channel.write_to(file).unwrap();
+
+        tokio::spawn(gen_feed(path.clone(), feed, cpfx.clone(), id.clone()));
+    }
 
     let req = Request::builder().body(axum::body::Body::empty()).unwrap();
 
     let service =
-        get_service(tower_http::services::ServeFile::new(path)).handle_error(handle_error);
+        get_service(tower_http::services::ServeFile::new(&path)).handle_error(handle_error);
 
     let result = service.oneshot(req).await;
+
     result
 }
 
