@@ -32,17 +32,20 @@ async fn main() {
 
 async fn return_audio(Path(id): Path<String>) -> impl IntoResponse {
     let url = format!("https://www.youtube.com/watch?v={id}");
-    let args = vec![
-        Arg::new("--quiet"),
-        Arg::new_with_arg("--format", "bestaudio[protocol^=http][abr<100][ext=m4a]"),
-        Arg::new("--embed-metadata"),
-        Arg::new("--embed-thumbnail"),
-        Arg::new_with_arg("--output", "%(id)s.m4a"),
-    ];
-    let _ytd = ytd_rs::YoutubeDL::new(&PathBuf::from("./."), args, &url)
-        .unwrap()
-        .download();
-    let path = format!("./{id}.m4a");
+    let path = format!("{id}.m4a");
+    if let false = std::path::Path::new(&path).exists() {
+        let args = vec![
+            Arg::new("--quiet"),
+            Arg::new_with_arg("--format", "bestaudio[protocol^=http][abr<100][ext=m4a]"),
+            Arg::new("--embed-metadata"),
+            Arg::new("--embed-thumbnail"),
+            Arg::new_with_arg("--sponsorblock-mark", "sponsor,selfpromo"),
+            Arg::new_with_arg("--output", "%(id)s.m4a"),
+        ];
+        let _ytd = ytd_rs::YoutubeDL::new(&PathBuf::from("./."), args, &url)
+            .unwrap()
+            .download();
+    }
 
     let req = Request::builder()
         .uri(id)
