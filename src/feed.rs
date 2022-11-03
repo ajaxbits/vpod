@@ -10,12 +10,12 @@ use super::episode::Episode;
 
 #[derive(Debug, Clone)]
 pub struct Feed {
-    image: String, //url
-    title: String,
-    author: String,
-    description: String,
-    link: String,
-    episodes: Option<Vec<Episode>>,
+    pub image: String, //url
+    pub title: String,
+    pub author: String,
+    pub description: String,
+    pub link: String,
+    pub episodes: Option<Vec<Episode>>,
 }
 
 impl Feed {

@@ -57,7 +57,6 @@ async fn return_audio(Path(id): Path<String>) -> impl IntoResponse {
 }
 
 async fn serve_rss(Path((cpfx, id)): Path<(String, String)>) -> impl IntoResponse {
-    let path = format!("{id}.xml");
     let feed = feed::Feed::new(&cpfx, &id);
 
     // let episodes: Vec<Episode> = get_recent_videos(channel_name)
@@ -66,6 +65,7 @@ async fn serve_rss(Path((cpfx, id)): Path<(String, String)>) -> impl IntoRespons
     //     .collect();
     // let feed = Feed::add_episodes(feed, episodes);
 
+    let path = format!("{id}.xml");
     let channel = rss::Channel::from(feed);
     let file = File::create(&path).unwrap_or_else(|_| panic!("could ot create {id}.xml"));
     channel.write_to(file).unwrap();
