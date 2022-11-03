@@ -30,3 +30,7 @@ Benchmark 1: curl localhost:3000/ixrLPGyekCI
 So this is the tradeoff: if you return from `stdout`, you are one second faster, but don't get the chapters.
 
 I think this performance could eventually be offset with a type of cache.
+
+# PROBLEMS
+
+https://www.youtube.com/user/Vihart

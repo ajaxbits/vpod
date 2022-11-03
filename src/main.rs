@@ -55,8 +55,17 @@ async fn return_audio(Path(id): Path<String>) -> impl IntoResponse {
 }
 
 async fn serve_rss(Path(channel_name): Path<String>) -> impl IntoResponse {
-    let xml = gen_feed(channel_name).await;
-    (StatusCode::OK, xml)
+    let path = gen_feed(&channel_name).await;
+    let req = Request::builder()
+        .uri(&channel_name)
+        .body(axum::body::Body::empty())
+        .unwrap();
+
+    let service =
+        get_service(tower_http::services::ServeFile::new(path)).handle_error(handle_error);
+
+    let result = service.oneshot(req).await;
+    result
 }
 
 async fn handle_error(_err: io::Error) -> impl IntoResponse {

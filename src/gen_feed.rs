@@ -46,16 +46,18 @@ pub fn read_feed(channel_name: String) -> Result<Feed, rss::Error> {
     Ok(feed)
 }
 
-pub async fn gen_feed(channel_name: String) -> String {
+pub async fn gen_feed(channel_name: &str) -> String {
+    let path = format!("{channel_name}.xml");
     let feed = Feed::new_from_name(&channel_name);
 
-    let episodes: Vec<Episode> = get_recent_videos(channel_name)
-        .into_iter()
-        .map(|vid| Episode::from(vid))
-        .collect();
-    let feed = Feed::add_episodes(feed, episodes);
+    // let episodes: Vec<Episode> = get_recent_videos(channel_name)
+    //     .into_iter()
+    //     .map(Episode::from)
+    //     .collect();
+    // let feed = Feed::add_episodes(feed, episodes);
 
     let channel = Channel::from(feed);
-    channel.write_to(std::io::sink()).unwrap(); // write to the channel to a writer
-    channel.to_string()
+    let file = File::create(&path).unwrap_or_else(|_| panic!("could ot create {channel_name}.xml"));
+    channel.write_to(file).unwrap();
+    path
 }

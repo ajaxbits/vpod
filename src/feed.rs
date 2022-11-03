@@ -1,10 +1,10 @@
+use chrono::Duration;
 use rss::{
     extension::itunes::ITunesChannelExtensionBuilder, Channel, ChannelBuilder, ImageBuilder, Item,
 };
-use std::{
-    collections::{BTreeMap, HashMap},
-    process::Command,
-};
+use std::{collections::BTreeMap, process::Command};
+
+use crate::episode::gen_description;
 
 use super::episode::Episode;
 
@@ -27,13 +27,11 @@ impl Feed {
             .expect("failed to parse the stdout of the yt-dlp command")
             .trim();
 
-        println!("yt-dlp path is: {:#?}", ytdlp_path.clone());
-
         let mut command = Command::new(ytdlp_path);
         command
-            .args(["--dump-single-json", "--flat-playlist", "--write-thumbnail"])
+            .args(["--dump-single-json", "--write-thumbnail"])
             .arg("--playlist-items")
-            .arg("0")
+            .arg("1")
             .arg(link);
         let command = command.output().expect("yt-dlp ran with errors");
 
@@ -41,17 +39,31 @@ impl Feed {
             .expect("failed to parse stdout")
             .trim();
 
-        println!("{:#?}", command.clone());
-
         let json: serde_json::Value = serde_json::from_str(command).unwrap();
-        println!("{:#?}", json.clone());
         let json = json.as_object().unwrap();
+        let ep = json["entries"]
+            .as_array()
+            .unwrap()
+            .iter()
+            .next()
+            .unwrap()
+            .as_object()
+            .unwrap();
+
+        let ep = Episode::new(
+            ep["id"].as_str().unwrap().to_owned(),
+            ep["title"].as_str().unwrap().to_owned(),
+            Duration::seconds(ep["duration"].as_i64().unwrap()),
+            ep["uploader"].as_str().unwrap().to_owned(),
+            ep["upload_date"].as_str().unwrap().to_owned(),
+            gen_description(ep["description"].as_str().unwrap().to_owned()),
+        );
 
         Feed {
             image: json["thumbnails"]
                 .as_array()
                 .unwrap()
-                .into_iter()
+                .iter()
                 .rev()
                 .find_map(|item| -> Option<String> {
                     let entry = item.as_object().unwrap();
@@ -83,7 +95,7 @@ impl Feed {
                 .as_str()
                 .map(|val| val.to_owned())
                 .expect("could not parse json uploader_val"),
-            episodes: None,
+            episodes: Some(vec![ep]),
         }
     }
 
@@ -139,7 +151,7 @@ impl From<Channel> for Feed {
             .clone()
             .into_items()
             .into_iter()
-            .map(|itm| Episode::from(itm))
+            .map(Episode::from)
             .collect();
 
         Feed {
