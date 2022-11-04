@@ -66,14 +66,21 @@ pub async fn gen_feed(path: String, feed: Feed, cpfx: String, id: String) {
     let mut map = HashMap::new();
     map.insert(
         "urlprefix",
-        env::var("NGROK_URL").expect("NGROK_URL not found!!"),
+        env::var("NGROK_URL").unwrap_or_else(|err| {
+            if err == env::VarError::NotPresent {
+                let app_name = env::var("FLY_APP_NAME").expect("could not find $FLY_APP_NAME");
+                format!("https://{app_name}.fly.dev")
+            } else {
+                panic!("could not find $NGROK_URL or $FLY_APP_NAME in env");
+            }
+        }),
     );
 
-    let client = reqwest::Client::new();
-    client
-        .post("https://overcast.fm/ping")
-        .json(&map)
-        .send()
-        .await
-        .unwrap();
+    //let client = reqwest::Client::new();
+    //client
+    //.post("https://overcast.fm/ping")
+    //.json(&map)
+    //.send()
+    //.await
+    //.unwrap();
 }

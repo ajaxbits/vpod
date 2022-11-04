@@ -1,34 +1,50 @@
 use axum::{
-    body::Body,
-    extract::{Path, RequestParts},
+    extract::Path,
     http::{Request, StatusCode},
     response::IntoResponse,
     routing::{get, get_service},
     Router,
 };
 use core::panic;
-use futures::FutureExt;
+use feed::Feed;
 use gen_feed::gen_feed;
-use std::{fs::File, io, net::SocketAddr, path::PathBuf, str::FromStr};
+use rss::Channel;
+use std::{
+    fs::File,
+    io::{self, BufReader},
+    net::SocketAddr,
+    path::PathBuf,
+    str::FromStr,
+};
 use tower::ServiceExt;
 use ytd_rs::Arg;
 
 mod episode;
 mod feed;
 mod gen_feed;
+mod polling;
 
 #[tokio::main]
 async fn main() {
     let app = Router::new()
         .route("/:cpfx/:channel_name", get(serve_rss))
+        // .route("/update/:cpfx/:channel_name", get(update_feed))
         .route("/ep/:id", get(return_audio));
 
-    let addr = SocketAddr::from_str("127.0.0.1:3000").expect("could not parse socketaddr");
+    let addr = SocketAddr::from_str("[::]:8080").expect("could not parse socketaddr");
     axum::Server::bind(&addr)
         .serve(app.into_make_service())
         .await
         .expect("could not start server");
 }
+
+// async fn update_feed(Path((cpfx, id)): Path<(String, String)>) -> impl IntoResponse {
+// let path = format!("{}.xml", &id);
+// let feed = File::open(&path).unwrap();
+// let feed: Feed = Channel::read_from(BufReader::new(feed)).unwrap().into();
+// gen_feed(path, feed, cpfx, id.clone()).await;
+// StatusCode::OK
+// }
 
 async fn return_audio(Path(id): Path<String>) -> impl IntoResponse {
     let url = format!("https://www.youtube.com/watch?v={id}");
@@ -63,6 +79,11 @@ async fn return_audio(Path(id): Path<String>) -> impl IntoResponse {
 async fn serve_rss(Path((cpfx, id)): Path<(String, String)>) -> impl IntoResponse {
     let path = format!("{id}.xml");
 
+    let req = Request::builder().body(axum::body::Body::empty()).unwrap();
+
+    let service =
+        get_service(tower_http::services::ServeFile::new(&path)).handle_error(handle_error);
+
     if let false = std::path::Path::new(&path).exists() {
         let feed = feed::Feed::new(&cpfx, &id);
         let channel = rss::Channel::from(feed.clone());
@@ -70,13 +91,12 @@ async fn serve_rss(Path((cpfx, id)): Path<(String, String)>) -> impl IntoRespons
         let file = File::create(&path).unwrap_or_else(|_| panic!("could ot create {id}.xml"));
         channel.write_to(file).unwrap();
 
-        tokio::spawn(gen_feed(path.clone(), feed, cpfx.clone(), id.clone()));
+        // ON FLY.IO, this doesn't actually seem to run "in the background"
+        tokio::spawn(async move {
+            println!("started the remote thread!");
+            gen_feed(path.clone(), feed, cpfx.clone(), id.clone()).await
+        });
     }
-
-    let req = Request::builder().body(axum::body::Body::empty()).unwrap();
-
-    let service =
-        get_service(tower_http::services::ServeFile::new(&path)).handle_error(handle_error);
 
     let result = service.oneshot(req).await;
 
