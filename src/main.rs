@@ -38,14 +38,6 @@ async fn main() {
         .expect("could not start server");
 }
 
-// async fn update_feed(Path((cpfx, id)): Path<(String, String)>) -> impl IntoResponse {
-// let path = format!("{}.xml", &id);
-// let feed = File::open(&path).unwrap();
-// let feed: Feed = Channel::read_from(BufReader::new(feed)).unwrap().into();
-// gen_feed(path, feed, cpfx, id.clone()).await;
-// StatusCode::OK
-// }
-
 async fn return_audio(Path(id): Path<String>) -> impl IntoResponse {
     let url = format!("https://www.youtube.com/watch?v={id}");
     let path = format!("{id}.m4a");
@@ -77,6 +69,11 @@ async fn return_audio(Path(id): Path<String>) -> impl IntoResponse {
 }
 
 async fn serve_rss(Path((cpfx, id)): Path<(String, String)>) -> impl IntoResponse {
+    let yt_url = format!("https://www.youtube.com/{cpfx}/{id}");
+    let id = vpod::get_channel_id(&yt_url)
+        .await
+        .expect("could not get channel_id");
+
     let path = format!("{id}.xml");
 
     let req = Request::builder().body(axum::body::Body::empty()).unwrap();
@@ -85,7 +82,7 @@ async fn serve_rss(Path((cpfx, id)): Path<(String, String)>) -> impl IntoRespons
         get_service(tower_http::services::ServeFile::new(&path)).handle_error(handle_error);
 
     if let false = std::path::Path::new(&path).exists() {
-        let feed = feed::Feed::new(&cpfx, &id);
+        let feed = feed::Feed::new(&id);
         let channel = rss::Channel::from(feed.clone());
 
         let file = File::create(&path).unwrap_or_else(|_| panic!("could ot create {id}.xml"));

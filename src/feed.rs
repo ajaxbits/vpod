@@ -19,8 +19,8 @@ pub struct Feed {
 }
 
 impl Feed {
-    pub fn new(cpfx: &str, id: &str) -> Self {
-        let link = format!("https://www.youtube.com/{cpfx}/{id}",);
+    pub fn new(id: &str) -> Self {
+        let link = format!("https://www.youtube.com/channel/{id}",);
         let command = Command::new("which").arg("yt-dlp").output().unwrap();
 
         let ytdlp_path = std::str::from_utf8(&command.stdout)

@@ -67,6 +67,7 @@
             yt-dlp
             sqlite
             yq
+            fx
 
             flyctl
           ];
