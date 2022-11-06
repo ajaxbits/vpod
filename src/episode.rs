@@ -145,14 +145,17 @@ impl From<youtube_dl::SingleVideo> for Episode {
                 .unwrap_or_else(|| panic!("Could not find an upload_date for {}", video.id)),
             "%Y%m%d",
         )
+        .map(|date| date.and_hms(0, 0, 0))
         .unwrap_or_else(|_| panic!("could not parse video {}'s upload date as str", video.id,));
+
+        let date = chrono::DateTime::<chrono::Utc>::from_utc(date, chrono::Utc).to_rfc2822();
 
         Episode::new(
             video.id,
             video.title,
             duration,
             video.uploader.unwrap(),
-            format!("{}", date.format("%a, %d %b %Y 00:00:00 +0000")),
+            date,
             gen_description(video.description.unwrap()),
         )
     }
