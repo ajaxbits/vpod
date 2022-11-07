@@ -1,3 +1,5 @@
+pub mod yt_xml;
+
 use scraper::{Html, Selector};
 pub async fn get_channel_id(url: &str) -> Result<String, Box<dyn std::error::Error>> {
     let resp = reqwest::get(url).await?;

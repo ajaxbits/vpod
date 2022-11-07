@@ -1,6 +1,7 @@
 use chrono::Duration;
 use rss::{
-    extension::itunes::ITunesChannelExtensionBuilder, Channel, ChannelBuilder, ImageBuilder, Item,
+    extension::itunes::ITunesChannelExtensionBuilder, Channel, ChannelBuilder, GuidBuilder,
+    ImageBuilder, Item,
 };
 use std::{collections::BTreeMap, process::Command};
 
@@ -19,83 +20,20 @@ pub struct Feed {
 }
 
 impl Feed {
-    pub fn new(id: &str) -> Self {
-        let link = format!("https://www.youtube.com/channel/{id}",);
-        let command = Command::new("which").arg("yt-dlp").output().unwrap();
+    pub async fn new(id: &str) -> Self {
+        let url = format!("https://www.youtube.com/channel/{id}",);
+        let resp = reqwest::get(url).await.unwrap().bytes().await.unwrap();
 
-        let ytdlp_path = std::str::from_utf8(&command.stdout)
-            .expect("failed to parse the stdout of the yt-dlp command")
-            .trim();
-
-        let mut command = Command::new(ytdlp_path);
-        command
-            .args(["--dump-single-json", "--write-thumbnail"])
-            .arg("--playlist-items")
-            .arg("1")
-            .arg(link);
-        let command = command.output().expect("yt-dlp ran with errors");
-
-        let command = std::str::from_utf8(&command.stdout)
-            .expect("failed to parse stdout")
-            .trim();
-
-        let json: serde_json::Value = serde_json::from_str(command).unwrap();
-        let json = json.as_object().unwrap();
-        let ep = json["entries"]
-            .as_array()
-            .unwrap()
-            .iter()
-            .next()
-            .unwrap()
-            .as_object()
-            .unwrap();
-
-        let ep = Episode::new(
-            ep["id"].as_str().unwrap().to_owned(),
-            ep["title"].as_str().unwrap().to_owned(),
-            Duration::seconds(ep["duration"].as_i64().unwrap()),
-            ep["uploader"].as_str().unwrap().to_owned(),
-            ep["upload_date"].as_str().unwrap().to_owned(),
-            gen_description(ep["description"].as_str().unwrap().to_owned()),
-        );
+        let channel = Channel::read_from(&resp[..]).unwrap();
+        let episodes: Vec<Episode> = channel.items().iter().collect();
 
         Feed {
-            image: json["thumbnails"]
-                .as_array()
-                .unwrap()
-                .iter()
-                .rev()
-                .find_map(|item| -> Option<String> {
-                    let entry = item.as_object().unwrap();
-                    if entry["id"].as_str() == Some("avatar_uncropped") {
-                        Some(
-                            entry["url"]
-                                .as_str()
-                                .expect("could not extract url as string for channel avatar")
-                                .to_string(),
-                        )
-                    } else {
-                        None
-                    }
-                })
-                .unwrap(),
-            title: json["channel"]
-                .as_str()
-                .map(|val| val.to_owned())
-                .expect("could not parse json uploader_val"),
-            author: json["uploader"]
-                .as_str()
-                .map(|val| val.to_owned())
-                .expect("could not parse json uploader_val"),
-            description: json["description"]
-                .as_str()
-                .map(|val| val.to_owned())
-                .expect("could not parse json uploader_val"),
-            link: json["webpage_url"]
-                .as_str()
-                .map(|val| val.to_owned())
-                .expect("could not parse json uploader_val"),
-            episodes: Some(vec![ep]),
+            image: todo!(),
+            title: todo!(),
+            author: todo!(),
+            description: todo!(),
+            link,
+            episodes: todo!(),
         }
     }
 

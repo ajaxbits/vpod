@@ -97,6 +97,21 @@ impl Episode {
             ..self
         }
     }
+
+    pub fn from_yt_ep(yt_ep: Item) -> Self {
+        Episode {
+            id: yt_ep.comments,
+            url: todo!(),
+            episode: None,
+            title: yt_ep.title(),
+            duration_str: todo!(),
+            duration_secs: todo!(),
+            author: todo!(),
+            date: todo!(),
+            link: yt_ep.link(),
+            description: todo!(),
+        }
+    }
 }
 
 impl From<Item> for Episode {
