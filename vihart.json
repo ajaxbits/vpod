@@ -1,0 +1,657 @@
+{
+  "feed": {
+    "@xmlns:yt": "http://www.youtube.com/xml/schemas/2015",
+    "@xmlns:media": "http://search.yahoo.com/mrss/",
+    "@xmlns": "http://www.w3.org/2005/Atom",
+    "link": [
+      {
+        "@rel": "self",
+        "@href": "http://www.youtube.com/feeds/videos.xml?channel_id=UCOGeU-1Fig3rrDjhm9Zs_wg"
+      },
+      {
+        "@rel": "alternate",
+        "@href": "https://www.youtube.com/channel/UCOGeU-1Fig3rrDjhm9Zs_wg"
+      }
+    ],
+    "id": "yt:channel:UCOGeU-1Fig3rrDjhm9Zs_wg",
+    "yt:channelId": "UCOGeU-1Fig3rrDjhm9Zs_wg",
+    "title": "Vihart",
+    "author": {
+      "name": "Vihart",
+      "uri": "https://www.youtube.com/channel/UCOGeU-1Fig3rrDjhm9Zs_wg"
+    },
+    "published": "2009-06-08T02:34:21+00:00",
+    "entry": [
+      {
+        "id": "yt:video:Twik7wqdwZU",
+        "yt:videoId": "Twik7wqdwZU",
+        "yt:channelId": "UCOGeU-1Fig3rrDjhm9Zs_wg",
+        "title": "only 0.000000001% of people will understand this video",
+        "link": {
+          "@rel": "alternate",
+          "@href": "https://www.youtube.com/watch?v=Twik7wqdwZU"
+        },
+        "author": {
+          "name": "Vihart",
+          "uri": "https://www.youtube.com/channel/UCOGeU-1Fig3rrDjhm9Zs_wg"
+        },
+        "published": "2022-10-27T04:11:05+00:00",
+        "updated": "2022-10-27T06:56:21+00:00",
+        "media:group": {
+          "media:title": "only 0.000000001% of people will understand this video",
+          "media:content": {
+            "@url": "https://www.youtube.com/v/Twik7wqdwZU?version=3",
+            "@type": "application/x-shockwave-flash",
+            "@width": "640",
+            "@height": "390"
+          },
+          "media:thumbnail": {
+            "@url": "https://i1.ytimg.com/vi/Twik7wqdwZU/hqdefault.jpg",
+            "@width": "480",
+            "@height": "360"
+          },
+          "media:description": "Can you death-of-the-author a math test? How about cultural values? YouTube videos?\n\nThis video references Hank Green's video: https://youtu.be/lBJVyCYuu78\n\nHey, I made a video! Thank you patrons for supporting and encouraging me. I had fun with this one.\n\nUhh there is probably more to say but it's been a while and I forget how to youtube",
+          "media:community": {
+            "media:starRating": {
+              "@count": "12510",
+              "@average": "5.00",
+              "@min": "1",
+              "@max": "5"
+            },
+            "media:statistics": {
+              "@views": "138549"
+            }
+          }
+        }
+      },
+      {
+        "id": "yt:video:Pu5HzpQtPhg",
+        "yt:videoId": "Pu5HzpQtPhg",
+        "yt:channelId": "UCOGeU-1Fig3rrDjhm9Zs_wg",
+        "title": "chickensalad.mp4",
+        "link": {
+          "@rel": "alternate",
+          "@href": "https://www.youtube.com/watch?v=Pu5HzpQtPhg"
+        },
+        "author": {
+          "name": "Vihart",
+          "uri": "https://www.youtube.com/channel/UCOGeU-1Fig3rrDjhm9Zs_wg"
+        },
+        "published": "2022-06-28T01:55:51+00:00",
+        "updated": "2022-09-06T12:07:56+00:00",
+        "media:group": {
+          "media:title": "chickensalad.mp4",
+          "media:content": {
+            "@url": "https://www.youtube.com/v/Pu5HzpQtPhg?version=3",
+            "@type": "application/x-shockwave-flash",
+            "@width": "640",
+            "@height": "390"
+          },
+          "media:thumbnail": {
+            "@url": "https://i1.ytimg.com/vi/Pu5HzpQtPhg/hqdefault.jpg",
+            "@width": "480",
+            "@height": "360"
+          },
+          "media:description": "Just a casual chat about abortion while making chicken salad. Here's a link I found that's pretty good, if you're looking for calls to action: bit.ly/RoeWYCD\n\nUsually my videos are funded by Patreon, but this one isn't, because that could be awkward for the folks I might usually name as funders. So. Patreon payments are suspended for this one. And since I don't make money on youtube or run youtube ads, this one's just a quick low-budget statement for those who are wondering my position on this issue. Now you know!\n\nChicken salad includes:\nHalf mayo, half yogurt (for sandwiches, lean toward mayo. For eating straight, lean toward yogurt.)\nCelery, green onion, apple (grapes work great too)\nfreshly toasted slivered almonds (this is like the tastiest secret to great chicken salad)\nseasoned to taste with salt, pepper, mustard, turmeric, cayenne, whatever else you want because it is your salad and you deserve delicious snacks",
+          "media:community": {
+            "media:starRating": {
+              "@count": "7921",
+              "@average": "5.00",
+              "@min": "1",
+              "@max": "5"
+            },
+            "media:statistics": {
+              "@views": "72332"
+            }
+          }
+        }
+      },
+      {
+        "id": "yt:video:rPLAEUIeo9U",
+        "yt:videoId": "rPLAEUIeo9U",
+        "yt:channelId": "UCOGeU-1Fig3rrDjhm9Zs_wg",
+        "title": "Melting my brain on chromatic pi",
+        "link": {
+          "@rel": "alternate",
+          "@href": "https://www.youtube.com/watch?v=rPLAEUIeo9U"
+        },
+        "author": {
+          "name": "Vihart",
+          "uri": "https://www.youtube.com/channel/UCOGeU-1Fig3rrDjhm9Zs_wg"
+        },
+        "published": "2022-03-26T03:48:58+00:00",
+        "updated": "2022-04-08T02:37:12+00:00",
+        "media:group": {
+          "media:title": "Melting my brain on chromatic pi",
+          "media:content": {
+            "@url": "https://www.youtube.com/v/rPLAEUIeo9U?version=3",
+            "@type": "application/x-shockwave-flash",
+            "@width": "640",
+            "@height": "390"
+          },
+          "media:thumbnail": {
+            "@url": "https://i3.ytimg.com/vi/rPLAEUIeo9U/hqdefault.jpg",
+            "@width": "480",
+            "@height": "360"
+          },
+          "media:description": "Why did I decide to do this? If you think you can do better, oh let me tell you just how much I DARE you.\n\nFull video of the challenge you can play along with is on my second channel here: https://youtu.be/iWFJDqq035k\n\nChallenge coin and sheet music: https://store.dftba.com/collections/vi-hart/products/pi-chromatic-challenge-metal-coin-and-digital-download \n\nOther stuff you can buy to support this work: https://store.dftba.com/collections/vi-hart\n\nThis video is supported by my patrons on Patreon. Extra shoutout to Caleb Wright and Ray Sidney, who have been staunch supporters of my piano, as well as Pat Devlin, David Perryman, Andew Romaner, Andrea Bi Biagio, Jodi Vezzetti, Yana Chernobilsky, David Smith, Alan Boulton, and Nancy Blachman!\n\nYou can join us here: https://www.patreon.com/vihart",
+          "media:community": {
+            "media:starRating": {
+              "@count": "5370",
+              "@average": "5.00",
+              "@min": "1",
+              "@max": "5"
+            },
+            "media:statistics": {
+              "@views": "99887"
+            }
+          }
+        }
+      },
+      {
+        "id": "yt:video:-4Zt5HxSCbo",
+        "yt:videoId": "-4Zt5HxSCbo",
+        "yt:channelId": "UCOGeU-1Fig3rrDjhm9Zs_wg",
+        "title": "Piano Secrets - Masterclass for Pi 2022",
+        "link": {
+          "@rel": "alternate",
+          "@href": "https://www.youtube.com/watch?v=-4Zt5HxSCbo"
+        },
+        "author": {
+          "name": "Vihart",
+          "uri": "https://www.youtube.com/channel/UCOGeU-1Fig3rrDjhm9Zs_wg"
+        },
+        "published": "2022-03-17T18:04:10+00:00",
+        "updated": "2022-09-08T12:32:44+00:00",
+        "media:group": {
+          "media:title": "Piano Secrets - Masterclass for Pi 2022",
+          "media:content": {
+            "@url": "https://www.youtube.com/v/-4Zt5HxSCbo?version=3",
+            "@type": "application/x-shockwave-flash",
+            "@width": "640",
+            "@height": "390"
+          },
+          "media:thumbnail": {
+            "@url": "https://i2.ytimg.com/vi/-4Zt5HxSCbo/hqdefault.jpg",
+            "@width": "480",
+            "@height": "360"
+          },
+          "media:description": "I don't know who this video is for, but it's here. Now is a good time for music, I think?\n\nStuff you can buy to support this work: https://store.dftba.com/collections/vi-hart\n\nThe sheetmusic and recording for the Pi Day 2022 piano composition: https://store.dftba.com/products/piano-sheet-music-digital-download-and-mp3\n\nExclusive shirt, cryptic edition, doubles as a puzzle: https://store.dftba.com/products/pi-day-2022-exclusive-shirt-cryptic-edition\nExclusive shirt, shiny edition, is special and shiny: https://store.dftba.com/products/pi-day-2022-exclusive-shirt-shiny-edition\n\nTriangle Pins! https://store.dftba.com/collections/vi-hart/products/triangle-pin\n\nAnd finally, the challenge coin and 314 digits of pi sheetmusic, available in many clefs as well as guitar tabs: https://store.dftba.com/collections/vi-hart/products/pi-chromatic-challenge-metal-coin-and-digital-download\n\nThis piece is dedicated to my patrons, who have supported me with such tremendous faith through many interesting times. Extra shoutout to Caleb Wright and Ray Sidney, who have been staunch supporters of my piano, as well as Pat Devlin, David Perryman, Andew Romaner, Andrea Bi Biagio, Jodi Vezzetti, Yana Chernobilsky, David Smith, Alan Boulton, and Nancy Blachman!\n\nYou can join us here: https://www.patreon.com/vihart",
+          "media:community": {
+            "media:starRating": {
+              "@count": "1293",
+              "@average": "5.00",
+              "@min": "1",
+              "@max": "5"
+            },
+            "media:statistics": {
+              "@views": "36200"
+            }
+          }
+        }
+      },
+      {
+        "id": "yt:video:YQw8xwEwNP4",
+        "yt:videoId": "YQw8xwEwNP4",
+        "yt:channelId": "UCOGeU-1Fig3rrDjhm9Zs_wg",
+        "title": "Pi Day 2022 - Chromatic Piano",
+        "link": {
+          "@rel": "alternate",
+          "@href": "https://www.youtube.com/watch?v=YQw8xwEwNP4"
+        },
+        "author": {
+          "name": "Vihart",
+          "uri": "https://www.youtube.com/channel/UCOGeU-1Fig3rrDjhm9Zs_wg"
+        },
+        "published": "2022-03-14T07:00:11+00:00",
+        "updated": "2022-05-26T02:25:46+00:00",
+        "media:group": {
+          "media:title": "Pi Day 2022 - Chromatic Piano",
+          "media:content": {
+            "@url": "https://www.youtube.com/v/YQw8xwEwNP4?version=3",
+            "@type": "application/x-shockwave-flash",
+            "@width": "640",
+            "@height": "390"
+          },
+          "media:thumbnail": {
+            "@url": "https://i2.ytimg.com/vi/YQw8xwEwNP4/hqdefault.jpg",
+            "@width": "480",
+            "@height": "360"
+          },
+          "media:description": "This is my 12th annual Pi Day video. How am I still here? How are you?\n\nI don't usually share \"serious\" music on the internet but I decided that March 2022 is a time to start. So I'm leaning hard into Pi Day and March 2022 this year, to not let another month slip by in the neverending now.\n\nThis piece is dedicated to my patrons, who have supported me with such tremendous faith through many interesting times. The 45 minute piano masterclass on this piece is now available here: https://www.youtube.com/watch?v=-4Zt5HxSCbo\n\nShiny Merch? yep, it is here: https://store.dftba.com/collections/vi-hart\n\nYou can buy the sheetmusic and recording for the Pi Day 2022 piano composition here: https://store.dftba.com/products/piano-sheet-music-digital-download-and-mp3 \n\nExclusive shirt, cryptic edition, doubles as a puzzle: https://store.dftba.com/products/pi-day-2022-exclusive-shirt-cryptic-edition\nExclusive shirt, shiny edition, is special and shiny: https://store.dftba.com/products/pi-day-2022-exclusive-shirt-shiny-edition\n\nTriangle Pins! https://store.dftba.com/collections/vi-hart/products/triangle-pin\n\nAnd finally, the challenge coin and 314 digits of pi sheetmusic, available in many clefs as well as guitar tabs: https://store.dftba.com/products/pi-chromatic-challenge-metal-coin-and-digital-download\n\nI will see you again soon. The best place to stay updated is probably on Patreon: https://www.patreon.com/vihart\n\nExtra shoutout to Caleb Wright and Ray Sidney, who have been staunch supporters of my piano, as well as Pat Devlin, David Perryman, Andew Romaner, Andrea Bi Biagio, Jodi Vezzetti, Yana Chernobilsky, David Smith, Alan Boulton, and Nancy Blachman!",
+          "media:community": {
+            "media:starRating": {
+              "@count": "6338",
+              "@average": "5.00",
+              "@min": "1",
+              "@max": "5"
+            },
+            "media:statistics": {
+              "@views": "76333"
+            }
+          }
+        }
+      },
+      {
+        "id": "yt:video:rqW4fYE3ZtA",
+        "yt:videoId": "rqW4fYE3ZtA",
+        "yt:channelId": "UCOGeU-1Fig3rrDjhm9Zs_wg",
+        "title": "Magic Heart Love Test - using two strips of paper, tape, and scissors.",
+        "link": {
+          "@rel": "alternate",
+          "@href": "https://www.youtube.com/watch?v=rqW4fYE3ZtA"
+        },
+        "author": {
+          "name": "Vihart",
+          "uri": "https://www.youtube.com/channel/UCOGeU-1Fig3rrDjhm9Zs_wg"
+        },
+        "published": "2022-02-12T18:07:38+00:00",
+        "updated": "2022-03-25T06:16:02+00:00",
+        "media:group": {
+          "media:title": "Magic Heart Love Test - using two strips of paper, tape, and scissors.",
+          "media:content": {
+            "@url": "https://www.youtube.com/v/rqW4fYE3ZtA?version=3",
+            "@type": "application/x-shockwave-flash",
+            "@width": "640",
+            "@height": "390"
+          },
+          "media:thumbnail": {
+            "@url": "https://i3.ytimg.com/vi/rqW4fYE3ZtA/hqdefault.jpg",
+            "@width": "480",
+            "@height": "360"
+          },
+          "media:description": "Is your love compatible? Do the forces of topology and mathematics smile upon your pairing? Find out with this classic mobius strip love test.\n\nI learned this from Mike Caputo in around 2010, and as far as I know he originated this trick, or was an early popularizer of it, in his 1990 article in the Jan/Feb edition of The Oregon Mathematics Teacher (and if anyone can find this article maybe it will give more insight). I blogged about it in Feb 2011 after teaching it in a workshop when I was Mathemusician in Residence at Harvard's Pforzheimer House (anyone here from those days? Hello!), but unfortunately all the links in that post are now dead (as is the blog itself) and my memory is fuzzy. So if you have info to share please send me a note!\n\nBut just to keep as much of the history and attribution as I can, here's the dead links I have for Mike: http://teach.beaverton.k12.or.us/~mike_caputo/ and for the article: https://www.octm.org/TOMT.html \n\nI've seen a number of great videos on this in the past ten years, but none that capture quite the spirit and framing of the original love test in the way I remember it. Or maybe this is never how it originally was and I made it all up. No idea, but I had fun making this and I hope you had fun watching it :D\n\nAnd an extra special Valentine's Day thanks to my Patreon patrons, whose support make this possible. Thank you Ray Sidney, Pat Devlin, David Perryman, Andew Romaner, Andrea Bi Biagio, Jodi Vezzetti, Yana Chernobilsky, David Smith, Alan Boulton, Nancy Blachman, and Caleb Wright, for your extra support!\n\nYou can support this work here: https://www.patreon.com/vihart",
+          "media:community": {
+            "media:starRating": {
+              "@count": "12605",
+              "@average": "5.00",
+              "@min": "1",
+              "@max": "5"
+            },
+            "media:statistics": {
+              "@views": "110528"
+            }
+          }
+        }
+      },
+      {
+        "id": "yt:video:-p7C5FrgAzU",
+        "yt:videoId": "-p7C5FrgAzU",
+        "yt:channelId": "UCOGeU-1Fig3rrDjhm9Zs_wg",
+        "title": "Twelve Threads",
+        "link": {
+          "@rel": "alternate",
+          "@href": "https://www.youtube.com/watch?v=-p7C5FrgAzU"
+        },
+        "author": {
+          "name": "Vihart",
+          "uri": "https://www.youtube.com/channel/UCOGeU-1Fig3rrDjhm9Zs_wg"
+        },
+        "published": "2021-09-21T23:00:58+00:00",
+        "updated": "2022-05-21T01:39:25+00:00",
+        "media:group": {
+          "media:title": "Twelve Threads",
+          "media:content": {
+            "@url": "https://www.youtube.com/v/-p7C5FrgAzU?version=3",
+            "@type": "application/x-shockwave-flash",
+            "@width": "640",
+            "@height": "390"
+          },
+          "media:thumbnail": {
+            "@url": "https://i2.ytimg.com/vi/-p7C5FrgAzU/hqdefault.jpg",
+            "@width": "480",
+            "@height": "360"
+          },
+          "media:description": "This video is... itself. Good job, video!\n\nThis work is sponsored by Patreon Patrons like you! Particular thanks to Ray Sidney, Pat Devlin, David Perryman, Andew Romaner, Andrea Bi Biagio, Jodi Vezzetti, Yana Chernobilsky, David Smith, Alan Boulton, Nancy Blachman, and Caleb Wright.\n\nWant to make your own BTS Octahedron? http://vihart.com/bts/  has lots of files and links. Also see the previous video: https://www.youtube.com/watch?v=YPKUbfIrlL8 \n\nIf you want to attempt to make the thing at the end of this video (spoilers) you can, but I must say I don’t recommend it to those without a lot of experience with these kinds of things. I know some of you out there who will definitely go ahead and make it even without a pattern because these things are in your nature too (you know who you are), so to make your lives easier, here: http://vihart.com/wp-content/uploads/2021/09/twelve-threads-octahedron.pdf\n\nChapters:\n00:00 Beginning\n00:27 Dice: Wrong About Numbering?\n01:58 Comments: COPPA\n03:51 Symmetry: Having IDEAS\n05:20 Dice 2: Is My Octahedron Wrong?\n10:50 Comments 2: Clickocracy\n12:44 Symmetry 2: Failure.\n15:55 Dice 3: MORE DATA\n24:43 Comments 3: “Influencer”\n26:45 Symmetry 3: Stubborn Failure\n28:15 Comments 4: Comfort with Not Knowing\n29:27 Symmetry 4: Wrapping Up\n31:19 Dice 4: ??\n36:04 End",
+          "media:community": {
+            "media:starRating": {
+              "@count": "21093",
+              "@average": "5.00",
+              "@min": "1",
+              "@max": "5"
+            },
+            "media:statistics": {
+              "@views": "283820"
+            }
+          }
+        }
+      },
+      {
+        "id": "yt:video:YPKUbfIrlL8",
+        "yt:videoId": "YPKUbfIrlL8",
+        "yt:channelId": "UCOGeU-1Fig3rrDjhm9Zs_wg",
+        "title": "The BTS Octahedron",
+        "link": {
+          "@rel": "alternate",
+          "@href": "https://www.youtube.com/watch?v=YPKUbfIrlL8"
+        },
+        "author": {
+          "name": "Vihart",
+          "uri": "https://www.youtube.com/channel/UCOGeU-1Fig3rrDjhm9Zs_wg"
+        },
+        "published": "2021-05-31T19:26:31+00:00",
+        "updated": "2022-05-28T20:42:48+00:00",
+        "media:group": {
+          "media:title": "The BTS Octahedron",
+          "media:content": {
+            "@url": "https://www.youtube.com/v/YPKUbfIrlL8?version=3",
+            "@type": "application/x-shockwave-flash",
+            "@width": "640",
+            "@height": "390"
+          },
+          "media:thumbnail": {
+            "@url": "https://i2.ytimg.com/vi/YPKUbfIrlL8/hqdefault.jpg",
+            "@width": "480",
+            "@height": "360"
+          },
+          "media:description": "I saw a shape in a poster, and the rest could not be helped.\n\nWant to make your own BTS Octahedron? http://vihart.com/bts/\n\nAlso see vihart.com/bts for more info, links, and original files that you can edit, translate, and reuse however you want.\n\nThis work is sponsored by Patreon Patrons like you! Special thanks to Ray Sidney, Pat Devlin, David Perryman, Andew Romaner, Andrea Bi Biagio, Jodi Vezzetti, Yana Chernobilsky, David Smith, and Caleb Wright.\n\nFor more paper octahedron fun, this intermediate origami octahedron by Jeremy Schafer is just wonderful: https://www.youtube.com/watch?v=rc5EGPo4Op0 \n\nOne of the playing card constructions is \"6 Card Ball\" by Andrea Hawksley, she has DIY instructions here: http://blog.andreahawksley.com/six-card-ball/ The 12 card construction is by George Hart and has instructions here: http://georgehart.com/g4g10/ \n\nAlso seen are a set of Skew Dice by Henry Segerman, as featured in this Numberphile video: https://www.youtube.com/watch?v=uAnCL3vhVIs\n\nYou may see a peek of a set of 4 truncated octahedra with one for each member of the Beatles. These came from the brilliant mind of an artist on Etsy named Tess, though she no longer seems to have a shop or a public-facing web presence. Tess, if you see this please please tell me WHAT WAS GOING THROUGH YOUR MIND WHEN YOU DECIDED BEATLES TRUNCATED OCTAHEDRA WERE A THING THAT NEEDED TO EXIST. Because you were right. So right. You give me faith that BTS Octahedra need to exist too.",
+          "media:community": {
+            "media:starRating": {
+              "@count": "10110",
+              "@average": "5.00",
+              "@min": "1",
+              "@max": "5"
+            },
+            "media:statistics": {
+              "@views": "125964"
+            }
+          }
+        }
+      },
+      {
+        "id": "yt:video:AHrth9lOfzo",
+        "yt:videoId": "AHrth9lOfzo",
+        "yt:channelId": "UCOGeU-1Fig3rrDjhm9Zs_wg",
+        "title": "Pi Day 3/14 1:59AM - Spring Ahead",
+        "link": {
+          "@rel": "alternate",
+          "@href": "https://www.youtube.com/watch?v=AHrth9lOfzo"
+        },
+        "author": {
+          "name": "Vihart",
+          "uri": "https://www.youtube.com/channel/UCOGeU-1Fig3rrDjhm9Zs_wg"
+        },
+        "published": "2021-03-14T05:00:01+00:00",
+        "updated": "2022-03-19T01:59:33+00:00",
+        "media:group": {
+          "media:title": "Pi Day 3/14 1:59AM - Spring Ahead",
+          "media:content": {
+            "@url": "https://www.youtube.com/v/AHrth9lOfzo?version=3",
+            "@type": "application/x-shockwave-flash",
+            "@width": "640",
+            "@height": "390"
+          },
+          "media:thumbnail": {
+            "@url": "https://i2.ytimg.com/vi/AHrth9lOfzo/hqdefault.jpg",
+            "@width": "480",
+            "@height": "360"
+          },
+          "media:description": "Pi is taking an hour from us! Let's get mad, then maybe drift off to soothing music to give ourselves that hour back.\n\nThank you to this tweet by @darrenglass and via @tweetsauce which not only reminded me that Pi Day was coming up and I should probably make a video, but from which I 100% stole the title and intro: https://twitter.com/darrenglass/status/1367978449864974337 \n\nThis video is sponsored by Patreon Patrons like you! Special thanks to Ray Sidney, Pat Devlin, David Perryman, Andew Romaner, Andrea Bi Biagio, Jodi Vezzetti, Yana Chernobilsky, and David Smith, plus an extra thanks from my piano to Caleb Wright.\n\nMore thanks are here: http://vihart.com/thanks/ \n\nHappy Pi Day, everyone. I know it's been not just a long while but also a weird while, and I'm glad to see you're still here with me.",
+          "media:community": {
+            "media:starRating": {
+              "@count": "15262",
+              "@average": "5.00",
+              "@min": "1",
+              "@max": "5"
+            },
+            "media:statistics": {
+              "@views": "184247"
+            }
+          }
+        }
+      },
+      {
+        "id": "yt:video:HhRQxk9QA-o",
+        "yt:videoId": "HhRQxk9QA-o",
+        "yt:channelId": "UCOGeU-1Fig3rrDjhm9Zs_wg",
+        "title": "How We Reopen",
+        "link": {
+          "@rel": "alternate",
+          "@href": "https://www.youtube.com/watch?v=HhRQxk9QA-o"
+        },
+        "author": {
+          "name": "Vihart",
+          "uri": "https://www.youtube.com/channel/UCOGeU-1Fig3rrDjhm9Zs_wg"
+        },
+        "published": "2020-04-20T12:21:46+00:00",
+        "updated": "2022-05-07T07:30:32+00:00",
+        "media:group": {
+          "media:title": "How We Reopen",
+          "media:content": {
+            "@url": "https://www.youtube.com/v/HhRQxk9QA-o?version=3",
+            "@type": "application/x-shockwave-flash",
+            "@width": "640",
+            "@height": "390"
+          },
+          "media:thumbnail": {
+            "@url": "https://i1.ytimg.com/vi/HhRQxk9QA-o/hqdefault.jpg",
+            "@width": "480",
+            "@height": "360"
+          },
+          "media:description": "A bipartisan group of experts in every field have agreed on a plan for #HowWeReopen. We CAN do this!\n\nCheck out the report: https://ethics.harvard.edu/covid-roadmap\n\nAnd a pile of supporting materials like in-depth papers on different aspects: https://www.pandemictesting.org/\n\nHere's some press we've already gotten:\n\nhttps://abcnews.go.com/US/road-map-recovery-report-20-million-coronavirus-tests/story?id=70230097&cid=social_twitter_abcn\nhttps://www.wbur.org/news/2020/04/20/harvard-ethics-roadmap-to-pandemic-resilience-danielle-allen\nhttps://www.washingtonpost.com/opinions/2020/04/20/three-key-ideas-stake-post-coronavirus-future/\nhttps://www.msnbc.com/morning-joe/watch/harvard-report-details-steps-to-pandemic-resilience-82292293667\n\nand a blog post I made about this video: http://vihart.com/how-we-reopen/\n\nWOOOOOOO! YEAH! Hello! :D",
+          "media:community": {
+            "media:starRating": {
+              "@count": "15137",
+              "@average": "5.00",
+              "@min": "1",
+              "@max": "5"
+            },
+            "media:statistics": {
+              "@views": "298915"
+            }
+          }
+        }
+      },
+      {
+        "id": "yt:video:Y4Lc5-6L1pE",
+        "yt:videoId": "Y4Lc5-6L1pE",
+        "yt:channelId": "UCOGeU-1Fig3rrDjhm9Zs_wg",
+        "title": "Pi Day Rant 2020",
+        "link": {
+          "@rel": "alternate",
+          "@href": "https://www.youtube.com/watch?v=Y4Lc5-6L1pE"
+        },
+        "author": {
+          "name": "Vihart",
+          "uri": "https://www.youtube.com/channel/UCOGeU-1Fig3rrDjhm9Zs_wg"
+        },
+        "published": "2020-03-14T00:00:08+00:00",
+        "updated": "2022-09-21T11:30:29+00:00",
+        "media:group": {
+          "media:title": "Pi Day Rant 2020",
+          "media:content": {
+            "@url": "https://www.youtube.com/v/Y4Lc5-6L1pE?version=3",
+            "@type": "application/x-shockwave-flash",
+            "@width": "640",
+            "@height": "390"
+          },
+          "media:thumbnail": {
+            "@url": "https://i2.ytimg.com/vi/Y4Lc5-6L1pE/hqdefault.jpg",
+            "@width": "480",
+            "@height": "360"
+          },
+          "media:description": "They were thinking of canceling Pi Day due to the new Coronavirus?? NOPE WE GOT THIS.\n\nStay home, Pi!\n\nThis year we're doing Pi Day as a purely online event. Please feel empowered to eat a pie by yourself. We're not saying you won't get coronavirus or give it to someone else, but how often do you get the opportunity to save lives by procrastinating and delaying the inevitable? Slow the spread, wash your hands, and have opinions about mathematical constants.\n\nThis video is sponsored by Patreon Patrons like you. Special thanks to Ray Sidney, Pat Devlin, David Perryman, Andew Romaner, Andrea Bi Biagio, Carol Hart, Jodi Vezzetti, Yana Chernobilsky, and David Smith!\n\nAssociated blog post: http://vihart.com/pi-day-rant-2020/\n\nIf you're looking for data on the novel coronavirus, here's a good website: https://ourworldindata.org/coronavirus",
+          "media:community": {
+            "media:starRating": {
+              "@count": "23754",
+              "@average": "5.00",
+              "@min": "1",
+              "@max": "5"
+            },
+            "media:statistics": {
+              "@views": "351763"
+            }
+          }
+        }
+      },
+      {
+        "id": "yt:video:imfqczglelI",
+        "yt:videoId": "imfqczglelI",
+        "yt:channelId": "UCOGeU-1Fig3rrDjhm9Zs_wg",
+        "title": "Pi Day 2019: 6 Digits of Pi!!! 🍰",
+        "link": {
+          "@rel": "alternate",
+          "@href": "https://www.youtube.com/watch?v=imfqczglelI"
+        },
+        "author": {
+          "name": "Vihart",
+          "uri": "https://www.youtube.com/channel/UCOGeU-1Fig3rrDjhm9Zs_wg"
+        },
+        "published": "2019-03-14T07:00:01+00:00",
+        "updated": "2022-07-22T14:43:06+00:00",
+        "media:group": {
+          "media:title": "Pi Day 2019: 6 Digits of Pi!!! 🍰",
+          "media:content": {
+            "@url": "https://www.youtube.com/v/imfqczglelI?version=3",
+            "@type": "application/x-shockwave-flash",
+            "@width": "640",
+            "@height": "390"
+          },
+          "media:thumbnail": {
+            "@url": "https://i2.ytimg.com/vi/imfqczglelI/hqdefault.jpg",
+            "@width": "480",
+            "@height": "360"
+          },
+          "media:description": "Whoah, it's our 9th annual Pi Day video and the number 9 is here to help you win your local Pi Day competition.\n\nPrevious Pi Day videos: https://www.youtube.com/playlist?list=PL5F03A9D6D278C5D9\n\nThank you Ray Sidney, Caleb Wright, Albert Wenger, Pat Devlin, David Perryman, Jade Bilkey, Chris Pierik, Donald “Chronos” King, Andew Romaner, Jodi Vezzetti, Carol Ghiorsi Hart, Andrea Di Biagio, Charley Sheets, Yana Chernobilsky, David A Smith, Michael Tiemann, and all of my patrons on Patreon! Two pies each for all of you! 🍰🍰🍰🍰🍰🍰🍰🍰🍰🍰🍰🍰🍰🍰🍰🍰🍰🍰🍰🍰🍰🍰🍰🍰🍰🍰🍰🍰🍰🍰🍰🍰🍰🍰\n\nYou too can support my work here: https://www.patreon.com/vihart\n\nOh I almost forgot, there's Tau Pi shirts and other stuff here which is also a way to support this work: https://store.dftba.com/collections/vi-hart",
+          "media:community": {
+            "media:starRating": {
+              "@count": "23671",
+              "@average": "5.00",
+              "@min": "1",
+              "@max": "5"
+            },
+            "media:statistics": {
+              "@views": "608503"
+            }
+          }
+        }
+      },
+      {
+        "id": "yt:video:TCwQweljegc",
+        "yt:videoId": "TCwQweljegc",
+        "yt:channelId": "UCOGeU-1Fig3rrDjhm9Zs_wg",
+        "title": "The Meaning of Cake",
+        "link": {
+          "@rel": "alternate",
+          "@href": "https://www.youtube.com/watch?v=TCwQweljegc"
+        },
+        "author": {
+          "name": "Vihart",
+          "uri": "https://www.youtube.com/channel/UCOGeU-1Fig3rrDjhm9Zs_wg"
+        },
+        "published": "2019-02-28T18:30:01+00:00",
+        "updated": "2022-03-24T23:13:56+00:00",
+        "media:group": {
+          "media:title": "The Meaning of Cake",
+          "media:content": {
+            "@url": "https://www.youtube.com/v/TCwQweljegc?version=3",
+            "@type": "application/x-shockwave-flash",
+            "@width": "640",
+            "@height": "390"
+          },
+          "media:thumbnail": {
+            "@url": "https://i1.ytimg.com/vi/TCwQweljegc/hqdefault.jpg",
+            "@width": "480",
+            "@height": "360"
+          },
+          "media:description": "more like epitheli-YUM. Ok so this is in VR180, you can click+drag the video or look around using your phone or try it in a headset like the google cardboard!\n\nFor more on scutoids and monkeybread, check out my last two videos.\n\nThank you Ray Sidney, Caleb Wright, Albert Wenger, Pat Devlin, David Perryman, Jade Bilkey, Chris Pierik, Donald “Chronos” King, Andew Romaner, Jodi Vezzetti, Carol Ghiorsi Hart, Andrea Di Biagio, Charley Sheets, Yana Chernobilsky, David A Smith, Michael Tiemann, and all of my patrons on Patreon!\n\nYou too can support my work here: https://www.patreon.com/vihart",
+          "media:community": {
+            "media:starRating": {
+              "@count": "7028",
+              "@average": "5.00",
+              "@min": "1",
+              "@max": "5"
+            },
+            "media:statistics": {
+              "@views": "228662"
+            }
+          }
+        }
+      },
+      {
+        "id": "yt:video:Qc23mwBnbNQ",
+        "yt:videoId": "Qc23mwBnbNQ",
+        "yt:channelId": "UCOGeU-1Fig3rrDjhm9Zs_wg",
+        "title": "The Mathematics of Monkeybread",
+        "link": {
+          "@rel": "alternate",
+          "@href": "https://www.youtube.com/watch?v=Qc23mwBnbNQ"
+        },
+        "author": {
+          "name": "Vihart",
+          "uri": "https://www.youtube.com/channel/UCOGeU-1Fig3rrDjhm9Zs_wg"
+        },
+        "published": "2019-02-01T17:45:00+00:00",
+        "updated": "2022-05-26T18:47:21+00:00",
+        "media:group": {
+          "media:title": "The Mathematics of Monkeybread",
+          "media:content": {
+            "@url": "https://www.youtube.com/v/Qc23mwBnbNQ?version=3",
+            "@type": "application/x-shockwave-flash",
+            "@width": "640",
+            "@height": "390"
+          },
+          "media:thumbnail": {
+            "@url": "https://i2.ytimg.com/vi/Qc23mwBnbNQ/hqdefault.jpg",
+            "@width": "480",
+            "@height": "360"
+          },
+          "media:description": "Melty butter looks tastier in 3D, so grab your VR headset! Or grab+drag the video, use the navigation buttons, or tilt your phone.\n\nThank you Ray Sidney, Caleb Wright, Albert Wenger, Pat Devlin, David Perryman, Jade Bilkey, Chris Pierik, Donald “Chronos” King, Andew Romaner, Jodi Vezzetti, Carol Ghiorsi Hart, Andrea Di Biagio, Charley Sheets, Yana Chernobilsky, David A Smith, Michael Tiemann, and all of my patrons on Patreon!\n\nYou too can support my work here: https://www.patreon.com/vihart",
+          "media:community": {
+            "media:starRating": {
+              "@count": "6218",
+              "@average": "5.00",
+              "@min": "1",
+              "@max": "5"
+            },
+            "media:statistics": {
+              "@views": "196568"
+            }
+          }
+        }
+      },
+      {
+        "id": "yt:video:pwgN2gfb9Lw",
+        "yt:videoId": "pwgN2gfb9Lw",
+        "yt:channelId": "UCOGeU-1Fig3rrDjhm9Zs_wg",
+        "title": "Scutoids",
+        "link": {
+          "@rel": "alternate",
+          "@href": "https://www.youtube.com/watch?v=pwgN2gfb9Lw"
+        },
+        "author": {
+          "name": "Vihart",
+          "uri": "https://www.youtube.com/channel/UCOGeU-1Fig3rrDjhm9Zs_wg"
+        },
+        "published": "2018-12-20T21:30:01+00:00",
+        "updated": "2022-06-04T05:50:39+00:00",
+        "media:group": {
+          "media:title": "Scutoids",
+          "media:content": {
+            "@url": "https://www.youtube.com/v/pwgN2gfb9Lw?version=3",
+            "@type": "application/x-shockwave-flash",
+            "@width": "640",
+            "@height": "390"
+          },
+          "media:thumbnail": {
+            "@url": "https://i1.ytimg.com/vi/pwgN2gfb9Lw/hqdefault.jpg",
+            "@width": "480",
+            "@height": "360"
+          },
+          "media:description": "Best Shape 2018! This video is VR180, so if you have a cardboard or other headset you can see the shapes in stereo, or look around in magic window on a phone or drag the video with the cursor.\n\nScutoids are officially named for the first time in this paper: \"Scutoids are a geometrical solution to three-dimensional packing of epithelia\" https://www.nature.com/articles/s41467-018-05376-1\n\nSpecial thanks to Clara Grima for answering my scutoid questions, and to Laura Taalman and Tom Ruen who contributed to the creation of paper scutoid nets based off of 3D scutoid models by Laura Taalman, who invented the packable pair of identical scutoids (see https://www.thingiverse.com/thing:3024272 ) , and John Peplinski, who created the space-filling cairo tile scutoid design (see https://www.thingiverse.com/thing:3042446 ). More on that next time!\n\nAlso thank you Caleb Wright, Albert Wenger, Pat Devlin, David Perryman, Jade Bilkey, Chris Pierik, Donald “Chronos” King, Andew Romaner, Jodi Vezzetti, Carol Ghiorsi Hart, Andrea Di Biagio, Charley Sheets, Yana Chernobilsky, David A Smith, Michael Tiemann, and all of my patrons on Patreon!\n\nYou too can support my work here: https://www.patreon.com/vihart\n\nFor more on scutoids, including paper nets: http://vihart.com/scutoids\n\nOh, and if you want that cool hexaflexagon poster or triangle pin, hey, I do have merch: https://store.dftba.com/collections/vi-hart",
+          "media:community": {
+            "media:starRating": {
+              "@count": "8962",
+              "@average": "5.00",
+              "@min": "1",
+              "@max": "5"
+            },
+            "media:statistics": {
+              "@views": "225707"
+            }
+          }
+        }
+      }
+    ]
+  }
+}
