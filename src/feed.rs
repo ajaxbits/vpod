@@ -4,6 +4,10 @@ use rss::{
     ImageBuilder, Item,
 };
 use std::{collections::BTreeMap, process::Command};
+use vpod::{
+    get_channel_description, get_channel_id, get_channel_image,
+    yt_xml::{Video, YtFeed},
+};
 
 use crate::episode::gen_description;
 
@@ -21,26 +25,34 @@ pub struct Feed {
 
 impl Feed {
     pub async fn new(id: &str) -> Self {
-        let url = format!("https://www.youtube.com/channel/{id}",);
-        let resp = reqwest::get(url).await.unwrap().bytes().await.unwrap();
-
-        let channel = Channel::read_from(&resp[..]).unwrap();
-        let episodes: Vec<Episode> = channel.items().iter().collect();
-
-        Feed {
-            image: todo!(),
-            title: todo!(),
-            author: todo!(),
-            description: todo!(),
-            link,
-            episodes: todo!(),
-        }
+        let feed = YtFeed::from_channel_id(id).await;
+        let feed = Feed::from_yt_feed(feed).await;
+        feed
     }
-
     pub fn add_episodes(self, episodes: Vec<Episode>) -> Self {
         Feed {
             episodes: Some(episodes),
             ..self
+        }
+    }
+
+    pub async fn from_yt_feed(feed: YtFeed) -> Self {
+        let channel_image = get_channel_image(&feed.author.uri.value).await.unwrap();
+        let channel_description = get_channel_description(&feed.author.uri.value)
+            .await
+            .unwrap();
+        let episodes = feed
+            .videos
+            .into_iter()
+            .map(|video| Episode::from(video))
+            .collect();
+        Feed {
+            image: channel_image,
+            title: feed.title.value,
+            author: feed.author.name.value,
+            description: channel_description,
+            link: feed.author.uri.value,
+            episodes: Some(episodes),
         }
     }
 }

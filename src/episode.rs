@@ -8,6 +8,7 @@ use rss::{
 };
 use std::collections::BTreeMap;
 use std::env;
+use vpod::yt_xml::Video;
 
 #[derive(Debug, Clone)]
 pub struct Episode {
@@ -97,19 +98,33 @@ impl Episode {
             ..self
         }
     }
+}
 
-    pub fn from_yt_ep(yt_ep: Item) -> Self {
+impl From<Video> for Episode {
+    fn from(video: Video) -> Self {
         Episode {
-            id: yt_ep.comments,
-            url: todo!(),
+            id: GuidBuilder::default().value(&video.id.value).build(),
+            url: format!(
+                "{}/ep/{}",
+                env::var("NGROK_URL").unwrap_or_else(|err| {
+                    if err == env::VarError::NotPresent {
+                        let app_name =
+                            env::var("FLY_APP_NAME").expect("could not find $FLY_APP_NAME");
+                        format!("https://{app_name}.fly.dev")
+                    } else {
+                        panic!("could not find $NGROK_URL or $FLY_APP_NAME in env");
+                    }
+                }),
+                &video.id.value
+            ),
             episode: None,
-            title: yt_ep.title(),
-            duration_str: todo!(),
-            duration_secs: todo!(),
-            author: todo!(),
-            date: todo!(),
-            link: yt_ep.link(),
-            description: todo!(),
+            title: video.title.value,
+            duration_str: "00:30:00".to_string(),
+            duration_secs: 1800,
+            author: video.author.name.value,
+            date: video.published.value.to_rfc2822(),
+            link: video.link.href,
+            description: video.group.description.value,
         }
     }
 }

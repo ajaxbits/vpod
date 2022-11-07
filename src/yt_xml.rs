@@ -1,120 +1,123 @@
-//TODO change this
-#![allow(dead_code)]
 use rust_decimal::Decimal;
 use serde::{Deserialize, Serialize};
 
 #[derive(Serialize, Deserialize, Debug, Clone)]
-struct XmlContentString {
-    #[serde(rename = "$value")]
-    value: String,
-}
-
-#[derive(Serialize, Deserialize, Debug, Clone)]
-struct XmlContentu32 {
-    #[serde(rename = "$value")]
-    value: u32,
-}
-
-#[derive(Serialize, Deserialize, Debug, Clone)]
-struct XmlContentDateTime {
-    #[serde(rename = "$value")]
-    value: chrono::DateTime<chrono::Utc>,
-}
-
-#[derive(Serialize, Deserialize, Debug, Clone)]
-struct Link {
-    rel: String,
-    href: String,
-}
-
-#[derive(Serialize, Deserialize, Debug, Clone)]
-struct Author {
-    name: XmlContentString,
-    uri: XmlContentString,
-}
-
-#[derive(Serialize, Deserialize, Debug, Clone)]
 #[serde(rename = "feed")]
-struct YtFeed {
-    link: Vec<Link>,
-    id: XmlContentString,
+pub struct YtFeed {
+    pub link: Vec<Link>,
+    pub id: XmlContentString,
     #[serde(rename = "channelId")]
-    channel_id: XmlContentString,
-    title: XmlContentString,
-    author: Author,
-    published: XmlContentDateTime,
+    pub channel_id: XmlContentString,
+    pub title: XmlContentString,
+    pub author: Author,
+    pub published: XmlContentDateTime,
+    #[serde(rename = "entry")]
+    pub videos: Vec<Video>,
+}
 
-    entry: Vec<Video>,
+impl YtFeed {
+    pub async fn from_channel_id(id: &str) -> Self {
+        let url = format!("https://www.youtube.com/feeds/videos.xml?channel_id={id}");
+        let resp = reqwest::get(url).await.unwrap();
+        let xml = resp.text().await.unwrap();
+        let mut de = serde_xml_rs::Deserializer::new_from_reader(xml.as_bytes())
+            .non_contiguous_seq_elements(true);
+
+        YtFeed::deserialize(&mut de).unwrap()
+    }
 }
 
 #[derive(Serialize, Deserialize, Debug, Clone)]
-enum Entry {
-    Video(Video),
+pub struct XmlContentString {
+    #[serde(rename = "$value")]
+    pub value: String,
+}
+
+#[derive(Serialize, Deserialize, Debug, Clone)]
+pub struct XmlContentu32 {
+    #[serde(rename = "$value")]
+    pub value: u32,
+}
+
+#[derive(Serialize, Deserialize, Debug, Clone)]
+pub struct XmlContentDateTime {
+    #[serde(rename = "$value")]
+    pub value: chrono::DateTime<chrono::Utc>,
+}
+
+#[derive(Serialize, Deserialize, Debug, Clone)]
+pub struct Link {
+    pub rel: String,
+    pub href: String,
+}
+
+#[derive(Serialize, Deserialize, Debug, Clone)]
+pub struct Author {
+    pub name: XmlContentString,
+    pub uri: XmlContentString,
 }
 
 #[derive(Serialize, Deserialize, Debug, Clone)]
 #[serde(rename_all = "camelCase")]
-struct Video {
-    id: XmlContentString,
-    // #[serde(rename = "videoId")]
-    video_id: XmlContentString,
-    // #[serde(rename = "channelId")]
-    channel_id: XmlContentString,
-    title: XmlContentString,
-    link: Link,
-    author: Author,
-    published: XmlContentDateTime,
-    updated: XmlContentDateTime,
-    group: MediaGroup,
+pub struct Video {
+    pub id: XmlContentString,
+    pub video_id: XmlContentString,
+    pub channel_id: XmlContentString,
+    pub title: XmlContentString,
+    pub link: Link,
+    pub author: Author,
+    pub published: XmlContentDateTime,
+    pub updated: XmlContentDateTime,
+    pub group: MediaGroup,
 }
 
 #[derive(Serialize, Deserialize, Debug, Clone)]
-struct MediaGroup {
-    title: XmlContentString,
-    content: MediaContent,
-    thumbnail: MediaThumbnail,
-    description: XmlContentString,
-    community: MediaCommunity,
+pub struct MediaGroup {
+    pub title: XmlContentString,
+    pub content: MediaContent,
+    pub thumbnail: MediaThumbnail,
+    pub description: XmlContentString,
+    pub community: MediaCommunity,
 }
 
 #[derive(Serialize, Deserialize, Debug, Clone)]
-struct MediaContent {
-    url: String,
-    r#type: String,
-    width: u32,
-    height: u32,
+pub struct MediaContent {
+    pub url: String,
+    pub r#type: String,
+    pub width: u32,
+    pub height: u32,
 }
 
 #[derive(Serialize, Deserialize, Debug, Clone)]
-struct MediaThumbnail {
-    url: String,
-    width: u32,
-    height: u32,
+pub struct MediaThumbnail {
+    pub url: String,
+    pub width: u32,
+    pub height: u32,
 }
 
 #[derive(Serialize, Deserialize, Debug, Clone)]
 #[serde(rename_all = "camelCase")]
-struct MediaCommunity {
-    star_rating: MediaStarRating,
-    statistics: MediaStatistics,
+pub struct MediaCommunity {
+    pub star_rating: MediaStarRating,
+    pub statistics: MediaStatistics,
 }
 
 #[derive(Serialize, Deserialize, Debug, Clone)]
-struct MediaStarRating {
-    count: u32,
-    average: Decimal,
-    min: u32,
-    max: u32,
+pub struct MediaStarRating {
+    pub count: u32,
+    pub average: Decimal,
+    pub min: u32,
+    pub max: u32,
 }
 
 #[derive(Serialize, Deserialize, Debug, Clone)]
-struct MediaStatistics {
-    views: u64,
+pub struct MediaStatistics {
+    pub views: u64,
 }
 
 #[cfg(test)]
 mod tests {
-    use chrono::{DateTime, Utc};
+    use chrono::DateTime;
     use rust_decimal::Decimal;
     use serde::Deserialize;
 
@@ -122,7 +125,7 @@ mod tests {
 
     #[test]
     fn test_basic_feed() {
-        let vihart = include_str!("../test/vihart-one-entry.xml");
+        let vihart = include_str!("../test/vihart.xml");
         let mut de = serde_xml_rs::Deserializer::new_from_reader(vihart.as_bytes())
             .non_contiguous_seq_elements(true);
         let vihart = YtFeed::deserialize(&mut de).unwrap();
@@ -142,11 +145,11 @@ mod tests {
     }
     #[test]
     fn test_single_entry() {
-        let vihart = include_str!("../test/vihart-one-entry.xml");
+        let vihart = include_str!("../test/vihart.xml");
         let mut de = serde_xml_rs::Deserializer::new_from_reader(vihart.as_bytes())
             .non_contiguous_seq_elements(true);
         let vihart = YtFeed::deserialize(&mut de).unwrap();
-        let video = vihart.entry.into_iter().next().unwrap();
+        let video = vihart.videos.into_iter().next().unwrap();
         let media = &video.group;
 
         assert_eq!(video.id.value, "yt:video:Twik7wqdwZU");
@@ -204,5 +207,38 @@ mod tests {
         assert_eq!(media.community.star_rating.min, 1);
         assert_eq!(media.community.star_rating.max, 5);
         assert_eq!(media.community.statistics.views, 139833);
+    }
+
+    #[test]
+    fn test_entry_amounts() {
+        let vihart = include_str!("../test/vihart.xml");
+        let mut de = serde_xml_rs::Deserializer::new_from_reader(vihart.as_bytes())
+            .non_contiguous_seq_elements(true);
+        let vihart = YtFeed::deserialize(&mut de).unwrap();
+        assert_eq!(vihart.videos.iter().count(), 15);
+    }
+
+    #[tokio::test]
+    async fn test_grim_beard_id() {
+        let url = "https://www.youtube.com/feeds/videos.xml?channel_id=UCNmv1Cmjm3Hk8Vc9kIgv0AQ";
+        let resp = reqwest::get(url).await.unwrap();
+        let xml = resp.text().await.unwrap();
+        let mut de = serde_xml_rs::Deserializer::new_from_reader(xml.as_bytes())
+            .non_contiguous_seq_elements(true);
+
+        let grim_beard = YtFeed::deserialize(&mut de).unwrap();
+        assert_eq!(grim_beard.videos.iter().count(), 15);
+        assert_eq!(grim_beard.id.value, "yt:channel:UCNmv1Cmjm3Hk8Vc9kIgv0AQ");
+        assert_eq!(grim_beard.channel_id.value, "UCNmv1Cmjm3Hk8Vc9kIgv0AQ");
+        assert_eq!(grim_beard.title.value, "Grim Beard");
+        assert_eq!(grim_beard.author.name.value, "Grim Beard");
+        assert_eq!(
+            grim_beard.author.uri.value,
+            "https://www.youtube.com/channel/UCNmv1Cmjm3Hk8Vc9kIgv0AQ"
+        );
+        assert_eq!(
+            grim_beard.published.value,
+            DateTime::parse_from_rfc3339("2013-08-14T03:37:55+00:00").unwrap()
+        );
     }
 }

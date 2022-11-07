@@ -82,17 +82,11 @@ async fn serve_rss(Path((cpfx, id)): Path<(String, String)>) -> impl IntoRespons
         get_service(tower_http::services::ServeFile::new(&path)).handle_error(handle_error);
 
     if let false = std::path::Path::new(&path).exists() {
-        let feed = feed::Feed::new(&id);
+        let feed = feed::Feed::new(&id).await;
         let channel = rss::Channel::from(feed.clone());
 
         let file = File::create(&path).unwrap_or_else(|_| panic!("could ot create {id}.xml"));
         channel.write_to(file).unwrap();
-
-        // ON FLY.IO, this doesn't actually seem to run "in the background"
-        tokio::spawn(async move {
-            println!("started the remote thread!");
-            gen_feed(path.clone(), feed, cpfx.clone(), id.clone()).await
-        });
     }
 
     let result = service.oneshot(req).await;

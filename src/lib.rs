@@ -17,6 +17,34 @@ pub async fn get_channel_id(url: &str) -> Result<String, Box<dyn std::error::Err
     Ok(id)
 }
 
+pub async fn get_channel_image(url: &str) -> Result<String, Box<dyn std::error::Error>> {
+    let resp = reqwest::get(url).await?;
+    let text = resp.text().await?;
+    let document = Html::parse_document(&text);
+    let selector = Selector::parse(r#"body > meta[property="og:image"]"#).unwrap();
+    let link = document
+        .select(&selector)
+        .next()
+        .map(|el| el.value().attr("content").unwrap())
+        .expect("could not find canonical link for channel");
+
+    Ok(link.to_string())
+}
+
+pub async fn get_channel_description(url: &str) -> Result<String, Box<dyn std::error::Error>> {
+    let resp = reqwest::get(url).await?;
+    let text = resp.text().await?;
+    let document = Html::parse_document(&text);
+    let selector = Selector::parse(r#"body > meta[property="og:description"]"#).unwrap();
+    let description = document
+        .select(&selector)
+        .next()
+        .map(|el| el.value().attr("content").unwrap())
+        .expect("could not find description for channel");
+
+    Ok(description.to_string())
+}
+
 #[cfg(test)]
 mod tests {
     // Note this useful idiom: importing names from outer (for mod tests) scope.
@@ -40,6 +68,22 @@ mod tests {
                 .await
                 .unwrap(),
             vihart
+        );
+    }
+
+    #[tokio::test]
+    async fn test_image() {
+        let image = "https://yt3.ggpht.com/ytc/AMLnZu_ZK-GvsGbsEaBYo0q_u3NvSSDT__vlljY7nJohDg=s900-c-k-c0x00ffffff-no-rj";
+        assert_eq!(
+            get_channel_image(&format!(
+                "https://www.youtube.com/channel/{}",
+                get_channel_id("https://www.youtube.com/c/OstonCodeCypher")
+                    .await
+                    .unwrap()
+            ))
+            .await
+            .unwrap(),
+            image
         );
     }
 }
