@@ -61,6 +61,7 @@
           buildInputs = with pkgs; [
             openssl
             pkgconfig
+            (docker.override (args: {buildxSupport = true;}))
 
             rust-env
 
