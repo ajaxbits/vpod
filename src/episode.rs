@@ -98,6 +98,10 @@ impl Episode {
             ..self
         }
     }
+
+    pub fn get_ep_number(&self) -> Option<i32> {
+        self.episode
+    }
 }
 
 impl From<Video> for Episode {

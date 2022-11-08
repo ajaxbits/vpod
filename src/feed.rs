@@ -1,15 +1,9 @@
-use chrono::Duration;
 use rss::{
-    extension::itunes::ITunesChannelExtensionBuilder, Channel, ChannelBuilder, GuidBuilder,
-    ImageBuilder, Item,
+    extension::itunes::ITunesChannelExtensionBuilder, Channel, ChannelBuilder, ImageBuilder, Item,
 };
-use std::{collections::BTreeMap, process::Command};
-use vpod::{
-    get_channel_description, get_channel_id, get_channel_image,
-    yt_xml::{Video, YtFeed},
-};
+use std::collections::{BTreeMap, HashMap};
 
-use crate::episode::gen_description;
+use vpod::{get_channel_description, get_channel_image, yt_xml::YtFeed};
 
 use super::episode::Episode;
 
@@ -41,11 +35,18 @@ impl Feed {
         let channel_description = get_channel_description(&feed.author.uri.value)
             .await
             .unwrap();
+        let mut count = 0;
         let episodes = feed
             .videos
             .into_iter()
             .map(|video| Episode::from(video))
+            .rev()
+            .map(|ep| {
+                count += 1;
+                ep.update_ep_number(count)
+            })
             .collect();
+
         Feed {
             image: channel_image,
             title: feed.title.value,
