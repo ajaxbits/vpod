@@ -107,7 +107,7 @@ impl Episode {
 impl From<Video> for Episode {
     fn from(video: Video) -> Self {
         Episode {
-            id: GuidBuilder::default().value(&video.id.value).build(),
+            id: GuidBuilder::default().value(&video.video_id.value).build(),
             url: format!(
                 "{}/ep/{}",
                 env::var("NGROK_URL").unwrap_or_else(|err| {
@@ -119,7 +119,7 @@ impl From<Video> for Episode {
                         panic!("could not find $NGROK_URL or $FLY_APP_NAME in env");
                     }
                 }),
-                &video.id.value
+                &video.video_id.value
             ),
             episode: None,
             title: video.title.value,
