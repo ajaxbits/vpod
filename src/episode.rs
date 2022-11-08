@@ -102,6 +102,24 @@ impl Episode {
     pub fn get_ep_number(&self) -> Option<i32> {
         self.episode
     }
+
+    pub fn add_duration(self) -> Self {
+        /*
+        This is how yt-dlp does it in python
+
+        duration = int_or_none(renderer.get('lengthSeconds'))
+        if duration is None:
+            duration = parse_duration(self._get_text(
+                renderer, 'lengthText', ('thumbnailOverlays', ..., 'thumbnailOverlayTimeStatusRenderer', 'text')))
+        if duration is None:
+            duration = parse_duration(self._search_regex(
+                r'(?i)(ago)(?!.*\1)\s+(?P<duration>[a-z0-9 ,]+?)(?:\s+[\d,]+\s+views)?(?:\s+-\s+play\s+short)?$',
+                traverse_obj(renderer, ('title', 'accessibility', 'accessibilityData', 'label'), default='', expected_type=str),
+                video_id, default=None, group='duration'))
+        */
+
+        todo!()
+    }
 }
 
 impl From<Video> for Episode {
