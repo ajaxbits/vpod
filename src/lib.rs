@@ -1,10 +1,23 @@
 pub mod yt_xml;
 
 use scraper::{Html, Selector};
-pub async fn get_channel_id(url: &str) -> Result<String, Box<dyn std::error::Error>> {
+
+async fn get_html(url: &str) -> Result<Html, Box<dyn std::error::Error>> {
     let resp = reqwest::get(url).await?;
     let text = resp.text().await?;
-    let document = Html::parse_document(&text);
+    Ok(Html::parse_document(&text))
+}
+async fn css_select_one(selector: &'_ str, html: Html) -> String {
+    let selector = Selector::parse(selector).unwrap();
+    html.select(&selector)
+        .next()
+        .map(|el| el.value().attr("content").unwrap())
+        .expect("could not find description for channel")
+        .to_string()
+}
+
+pub async fn get_channel_id(url: &str) -> Result<String, Box<dyn std::error::Error>> {
+    let document = get_html(&url).await?;
     let selector = Selector::parse(r#"body > link[rel="canonical"]"#).unwrap();
     let link = document
         .select(&selector)
@@ -18,9 +31,7 @@ pub async fn get_channel_id(url: &str) -> Result<String, Box<dyn std::error::Err
 }
 
 pub async fn get_channel_image(url: &str) -> Result<String, Box<dyn std::error::Error>> {
-    let resp = reqwest::get(url).await?;
-    let text = resp.text().await?;
-    let document = Html::parse_document(&text);
+    let document = get_html(&url).await?;
     let selector = Selector::parse(r#"body > meta[property="og:image"]"#).unwrap();
     let link = document
         .select(&selector)
@@ -32,9 +43,7 @@ pub async fn get_channel_image(url: &str) -> Result<String, Box<dyn std::error::
 }
 
 pub async fn get_channel_description(url: &str) -> Result<String, Box<dyn std::error::Error>> {
-    let resp = reqwest::get(url).await?;
-    let text = resp.text().await?;
-    let document = Html::parse_document(&text);
+    let document = get_html(&url).await?;
     let selector = Selector::parse(r#"body > meta[property="og:description"]"#).unwrap();
     let description = document
         .select(&selector)
@@ -43,6 +52,23 @@ pub async fn get_channel_description(url: &str) -> Result<String, Box<dyn std::e
         .expect("could not find description for channel");
 
     Ok(description.to_string())
+}
+
+pub async fn get_video_length(url: &str) -> Result<u32, Box<dyn std::error::Error>> {
+    let resp = reqwest::get(url).await?;
+    let text = resp.text().await?;
+    let length = text.find("lengthSeconds");
+    match length {
+        Some(i) => {
+            let text = &text[i + 16..];
+            let end = text.find('"').unwrap();
+            let text = &text[..end];
+            Ok(text
+                .parse::<u32>()
+                .expect("could not parse duration as u32!"))
+        }
+        None => Ok(1800),
+    }
 }
 
 #[cfg(test)]
@@ -85,5 +111,12 @@ mod tests {
             .unwrap(),
             image
         );
+    }
+
+    #[tokio::test]
+    async fn test_video_length() {
+        let url = "https://www.youtube.com/watch?v=rAl-9HwD858&list=PLqbS7AVVErFiWDOAVrPt7aYmnuuOLYvOa&index=1";
+        let length = 5603;
+        assert_eq!(get_video_length(&url).await.unwrap(), length);
     }
 }

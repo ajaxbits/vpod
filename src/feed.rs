@@ -47,6 +47,7 @@ impl Feed {
                 count += 1;
                 ep.update_ep_number(count)
             })
+            .map(|ep| )
             .collect();
 
         Feed {
