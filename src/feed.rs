@@ -39,8 +39,10 @@ impl Feed {
         let episodes = feed
             .videos
             .into_iter()
-            .map(|video| Episode::from(video))
-            .rev()
+            .filter_map(|video| match video.title.value.contains("#Shorts") {
+                true => None,
+                false => Some(Episode::from(video)),
+            })
             .map(|ep| {
                 count += 1;
                 ep.update_ep_number(count)
