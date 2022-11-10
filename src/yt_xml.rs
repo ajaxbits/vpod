@@ -199,14 +199,14 @@ mod tests {
             media.description.value,
             "Can you death-of-the-author a math test? How about cultural values? YouTube videos?\n\nThis video references Hank Green's video: https://youtu.be/lBJVyCYuu78\n\nHey, I made a video! Thank you patrons for supporting and encouraging me. I had fun with this one.\n\nUhh there is probably more to say but it's been a while and I forget how to youtube"
         );
-        assert_eq!(media.community.star_rating.count, 12562);
+        assert_eq!(media.community.star_rating.count, 12923);
         assert_eq!(
             media.community.star_rating.average,
             Decimal::from_str_exact("5.00").unwrap()
         );
         assert_eq!(media.community.star_rating.min, 1);
         assert_eq!(media.community.star_rating.max, 5);
-        assert_eq!(media.community.statistics.views, 139833);
+        assert_eq!(media.community.statistics.views, 148559);
     }
 
     #[test]

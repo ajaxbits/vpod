@@ -7,14 +7,6 @@ async fn get_html(url: &str) -> Result<Html, Box<dyn std::error::Error>> {
     let text = resp.text().await?;
     Ok(Html::parse_document(&text))
 }
-async fn css_select_one(selector: &'_ str, html: Html) -> String {
-    let selector = Selector::parse(selector).unwrap();
-    html.select(&selector)
-        .next()
-        .map(|el| el.value().attr("content").unwrap())
-        .expect("could not find description for channel")
-        .to_string()
-}
 
 pub async fn get_channel_id(url: &str) -> Result<String, Box<dyn std::error::Error>> {
     let document = get_html(&url).await?;
