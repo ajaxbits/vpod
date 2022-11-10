@@ -11,7 +11,7 @@ chrono = { version = "0.4.22", features = ["serde"] }
 color-eyre = "0.6.2"
 futures = "0.3.25"
 html-escape = "0.2.11"
-quick-xml = "0.22.0"
+quick-xml = "0.22.0" # this version was needed at some point for compat
 reqwest = { version = "0.11.12", features = ["json"] }
 rss = { version = "2.0.1", features = ["serde", "url", "mime", "validation"] }
 rust_decimal = "1.26.1"
@@ -26,6 +26,5 @@ tokio = { version = "1.21.2", features = ["full"] }
 tokio-util = "0.7.4"
 tower = "0.4.13"
 tower-http = { version = "0.3.4", features = ["fs"] }
-uuid = { version = "1.2.1", features = ["v4", "fast-rng", "macro-diagnostics", "serde"] }
 youtube_dl = { version = "0.7.0", default_features = false, features = ["yt-dlp", "tokio"] }
 ytd-rs = { version = "0.1.7", features = ["yt-dlp"] }
