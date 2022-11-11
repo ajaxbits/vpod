@@ -173,7 +173,7 @@ impl From<Item> for Episode {
                 .map(|enc| enc.length())
                 .map(|s| s.parse::<i64>().unwrap_or_else(|_| panic!("could not parse {s} as i64")))
                 .expect("could not compute duration_secs from the enclosure for the specified rss entry"),
-            author: item.author().expect("could not find author for specified episode").to_owned(),
+            author: itunes_info.author().expect("could not find author for specified episode").to_owned(),
             date: item.pub_date().expect("could not find date for specified episode").to_owned(),
             link: item.link().expect("could not find link for specified episode").to_owned(),
             description: item.description().expect("could not find description for specified episode").to_owned(),

@@ -110,7 +110,7 @@ impl From<Channel> for Feed {
 
         Feed {
             title: channel.title().to_string(),
-            image: itunes_metadata.image().unwrap().to_string(),
+            image: channel.image().unwrap().url().to_string(),
             author: itunes_metadata.author().unwrap().to_string(),
             description: channel.description().to_string(),
             link: channel.link().to_string(),

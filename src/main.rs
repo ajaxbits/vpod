@@ -109,7 +109,11 @@ async fn serve_rss(Path((cpfx, id)): Path<(String, String)>) -> impl IntoRespons
 
             old_eps.extend(new_eps.into_iter());
 
-            let eps = old_eps;
+            let eps: Vec<Episode> = old_eps
+                .into_iter()
+                .enumerate()
+                .map(|(count, ep)| ep.set_ep_number(Some(count.try_into().unwrap())))
+                .collect();
 
             new_feed.add_episodes(eps)
         }
