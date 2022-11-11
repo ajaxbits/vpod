@@ -6,7 +6,9 @@ use axum::{
     Router,
 };
 use core::panic;
+use episode::Episode;
 use feed::Feed;
+use futures::SinkExt;
 use gen_feed::gen_feed;
 use rss::Channel;
 use std::{
@@ -16,6 +18,7 @@ use std::{
     path::PathBuf,
     str::FromStr,
 };
+use tokio::io::BufReader as AsyncBufReader;
 use tower::ServiceExt;
 use ytd_rs::Arg;
 
@@ -81,13 +84,41 @@ async fn serve_rss(Path((cpfx, id)): Path<(String, String)>) -> impl IntoRespons
     let service =
         get_service(tower_http::services::ServeFile::new(&path)).handle_error(handle_error);
 
-    if let false = std::path::Path::new(&path).exists() {
-        let feed = feed::Feed::new(&id).await;
-        let channel = rss::Channel::from(feed.clone());
+    let feed = match std::path::Path::new(&path).exists() {
+        true => {
+            let new_feed = Feed::new(&id);
+            let old_file = File::open(&path).unwrap();
+            let new_feed = new_feed.await;
 
-        let file = File::create(&path).unwrap_or_else(|_| panic!("could ot create {id}.xml"));
-        channel.write_to(file).unwrap();
-    }
+            let old_feed: Feed = Channel::read_from(BufReader::new(&old_file))
+                .unwrap()
+                .into();
+
+            let mut old_eps = old_feed.episodes.unwrap();
+            let new_eps = new_feed.episodes.as_ref().unwrap().to_owned();
+
+            let first = new_eps.first().unwrap();
+            let index = old_eps
+                .clone()
+                .into_iter()
+                .position(|ep| ep.id.value() == first.id.value());
+
+            if let Some(i) = index {
+                old_eps.truncate(i)
+            };
+
+            old_eps.extend(new_eps.into_iter());
+
+            let eps = old_eps;
+
+            new_feed.add_episodes(eps)
+        }
+        false => feed::Feed::new(&id).await,
+    };
+
+    let channel = rss::Channel::from(feed.clone());
+    let file = File::create(&path).unwrap_or_else(|_| panic!("could ot create {id}.xml"));
+    channel.write_to(file).unwrap();
 
     let result = service.oneshot(req).await;
 

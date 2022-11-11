@@ -23,6 +23,7 @@ impl Feed {
         let feed = Feed::from_yt_feed(feed).await;
         feed
     }
+
     pub fn add_episodes(self, episodes: Vec<Episode>) -> Self {
         Feed {
             episodes: Some(episodes),
@@ -45,9 +46,8 @@ impl Feed {
             })
             .map(|ep| {
                 count += 1;
-                ep.update_ep_number(count)
+                ep.set_ep_number(Some(count))
             })
-            .map(|ep| )
             .collect();
 
         Feed {

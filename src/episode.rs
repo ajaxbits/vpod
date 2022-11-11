@@ -10,11 +10,11 @@ use std::collections::BTreeMap;
 use std::env;
 use vpod::yt_xml::Video;
 
-#[derive(Debug, Clone)]
+#[derive(Debug, Clone, PartialEq)]
 pub struct Episode {
-    id: rss::Guid,
+    pub id: rss::Guid,
     url: String,
-    episode: Option<i32>,
+    episode: Option<u32>,
     title: String,
     duration_str: String,
     duration_secs: i64,
@@ -92,23 +92,34 @@ impl Episode {
             description,
         }
     }
-    pub fn update_ep_number(self, number: i32) -> Self {
+    pub fn set_ep_number(self, number: Option<u32>) -> Self {
         Episode {
-            episode: Some(number),
-            ..self
-        }
-    }
-    pub fn update_duration(self, number: u32) -> Self {
-        Episode {
-            episode: Some(number),
+            episode: number,
             ..self
         }
     }
 
-    pub fn get_ep_number(&self) -> Option<i32> {
+    pub fn get_ep_number(&self) -> Option<u32> {
         self.episode
     }
 }
+
+//impl PartialEq for Episode {
+//fn eq(&self, other: &Self) -> bool {
+//let id = self.id.value() == other.id.value();
+//let url = self.url == other.url;
+//let title = self.title == other.title;
+//let duration_str = self.duration_str == other.duration_str;
+//let duration_secs = self.duration_secs == other.duration_secs;
+//let author = self.author == other.author;
+//let date = self.date == other.date;
+//let link = self.link == other.link;
+//let description = self.description == other.description;
+
+//return id && url && title && duration
+
+//}
+//}
 
 impl From<Video> for Episode {
     fn from(video: Video) -> Self {
@@ -147,7 +158,7 @@ impl From<Item> for Episode {
             url: item.link().expect("could not find link").to_owned(),
             episode: itunes_info.episode().map(|value| {
                 value
-                    .parse::<i32>()
+                    .parse::<u32>()
                     .unwrap_or_else(|_| panic!("could not parse {value} as i32"))
             }),
             title: item
