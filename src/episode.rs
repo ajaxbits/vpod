@@ -17,7 +17,7 @@ pub struct Episode {
     episode: Option<u32>,
     title: String,
     duration_str: String,
-    duration_secs: i64,
+    duration_secs: u32,
     author: String,
     date: String,
     link: String,
@@ -38,6 +38,23 @@ pub fn gen_description(description: String) -> String {
     description
 }
 
+fn gen_duration_str(duration: Duration) -> String {
+    let hours = duration.num_hours();
+    let minutes = duration.num_minutes() - (&duration.num_hours() * 60);
+    let seconds = duration.num_seconds() - (&duration.num_minutes() * 60);
+
+    let time: Vec<String> = vec![hours, minutes, seconds]
+        .into_iter()
+        .map(|number| format!("{number}"))
+        .map(|time_str| match time_str.chars().count() {
+            1 => format!("0{time_str}"),
+            _ => time_str,
+        })
+        .collect();
+
+    format!("{}:{}:{}", time[0], time[1], time[2])
+}
+
 impl Episode {
     pub fn new(
         id: String,
@@ -47,23 +64,6 @@ impl Episode {
         date: String,
         description: String,
     ) -> Self {
-        fn gen_duration_str(duration: Duration) -> String {
-            let hours = duration.num_hours();
-            let minutes = duration.num_minutes() - (&duration.num_hours() * 60);
-            let seconds = duration.num_seconds() - (&duration.num_minutes() * 60);
-
-            let time: Vec<String> = vec![hours, minutes, seconds]
-                .into_iter()
-                .map(|number| format!("{number}"))
-                .map(|time_str| match time_str.chars().count() {
-                    1 => format!("0{time_str}"),
-                    _ => time_str,
-                })
-                .collect();
-
-            format!("{}:{}:{}", time[0], time[1], time[2])
-        }
-
         Episode {
             id: GuidBuilder::default()
                 .value(id.clone())
@@ -85,7 +85,7 @@ impl Episode {
             episode: None,
             title,
             duration_str: gen_duration_str(duration),
-            duration_secs: duration.num_seconds(),
+            duration_secs: u32::try_from(duration.num_seconds()).ok().unwrap(),
             author: uploader,
             date,
             link: format!("https://www.youtube.com/watch?v={}", id),
@@ -101,6 +101,18 @@ impl Episode {
 
     pub fn get_ep_number(&self) -> Option<u32> {
         self.episode
+    }
+
+    pub fn get_yt_link(&self) -> String {
+        self.link.to_owned()
+    }
+
+    pub fn set_length(self, length: u32) -> Self {
+        Self {
+            duration_secs: length,
+            duration_str: gen_duration_str(Duration::seconds(length.into())),
+            ..self
+        }
     }
 }
 
@@ -171,7 +183,7 @@ impl From<Item> for Episode {
                 .expect("could not find duration for this episode"),
             duration_secs: item.enclosure()
                 .map(|enc| enc.length())
-                .map(|s| s.parse::<i64>().unwrap_or_else(|_| panic!("could not parse {s} as i64")))
+                .map(|s| s.parse::<u32>().unwrap_or_else(|_| panic!("could not parse {s} as i64")))
                 .expect("could not compute duration_secs from the enclosure for the specified rss entry"),
             author: itunes_info.author().expect("could not find author for specified episode").to_owned(),
             date: item.pub_date().expect("could not find date for specified episode").to_owned(),

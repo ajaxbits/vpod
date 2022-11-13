@@ -8,8 +8,6 @@ use axum::{
 use core::panic;
 use episode::Episode;
 use feed::Feed;
-use futures::SinkExt;
-use gen_feed::gen_feed;
 use rss::Channel;
 use std::{
     fs::File,
@@ -18,7 +16,6 @@ use std::{
     path::PathBuf,
     str::FromStr,
 };
-use tokio::io::BufReader as AsyncBufReader;
 use tower::ServiceExt;
 use ytd_rs::Arg;
 
@@ -31,7 +28,6 @@ mod polling;
 async fn main() {
     let app = Router::new()
         .route("/:cpfx/:channel_name", get(serve_rss))
-        // .route("/update/:cpfx/:channel_name", get(update_feed))
         .route("/ep/:id", get(return_audio));
 
     let addr = SocketAddr::from_str("[::]:8080").expect("could not parse socketaddr");

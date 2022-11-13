@@ -1,3 +1,5 @@
+use futures::StreamExt;
+use hyper::body;
 use rss::{
     extension::itunes::ITunesChannelExtensionBuilder, Channel, ChannelBuilder, ImageBuilder, Item,
 };
@@ -36,18 +38,56 @@ impl Feed {
         let channel_description = get_channel_description(&feed.author.uri.value)
             .await
             .unwrap();
-        let mut count = 0;
-        let episodes = feed
+
+        let episodes: Vec<Episode> = feed
             .videos
             .into_iter()
             .filter_map(|video| match video.title.value.contains("#Shorts") {
                 true => None,
                 false => Some(Episode::from(video)),
             })
-            .map(|ep| {
-                count += 1;
-                ep.set_ep_number(Some(count))
+            .enumerate()
+            .map(|(count, ep)| ep.set_ep_number(Some(count.try_into().unwrap())))
+            .collect();
+
+        let client = hyper::Client::new();
+
+        let uris = episodes
+            .clone()
+            .into_iter()
+            .map(|ep| ep.get_yt_link())
+            .map(|s| s.parse::<hyper::http::Uri>().unwrap());
+
+        let urls = futures::stream::iter(uris)
+            .map(move |uri| client.get(uri))
+            .buffered(15)
+            .then(|res| async {
+                let res = res.expect("Error making request: {}");
+                body::to_bytes(res).await.expect("err reading body!")
             })
+            .then(|body| async {
+                let body = String::from_utf8(body.into_iter().collect()).unwrap();
+                let length = body.find("lengthSeconds");
+                match length {
+                    Some(i) => {
+                        let text = &body[i + 16..];
+                        let end = text.find('"').unwrap();
+                        let text = &text[..end];
+                        let duration = text
+                            .parse::<u32>()
+                            .expect("could not parse duration as u32!");
+                        duration
+                    }
+                    None => 1800,
+                }
+            })
+            .collect::<Vec<u32>>()
+            .await;
+
+        let episodes = episodes
+            .into_iter()
+            .zip(urls.into_iter())
+            .map(|(episode, length)| episode.set_length(length))
             .collect();
 
         Feed {
