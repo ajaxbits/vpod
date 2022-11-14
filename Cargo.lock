@@ -2574,6 +2574,7 @@ dependencies = [
  "futures",
  "html-escape",
  "hyper",
+ "hyper-tls",
  "quick-xml",
  "reqwest",
  "rss",

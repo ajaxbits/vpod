@@ -1,5 +1,5 @@
 use futures::StreamExt;
-use hyper::body;
+use hyper::{body, server::conn::Http};
 use rss::{
     extension::itunes::ITunesChannelExtensionBuilder, Channel, ChannelBuilder, ImageBuilder, Item,
 };
@@ -8,6 +8,7 @@ use std::collections::{BTreeMap, HashMap};
 use vpod::{get_channel_description, get_channel_image, yt_xml::YtFeed};
 
 use super::episode::Episode;
+use hyper_tls::HttpsConnector;
 
 #[derive(Debug, Clone)]
 pub struct Feed {
@@ -42,20 +43,27 @@ impl Feed {
         let episodes: Vec<Episode> = feed
             .videos
             .into_iter()
-            .filter_map(|video| match video.title.value.to_ascii_lowercase().contains("#shorts") {
-                true => None,
-                false => Some(Episode::from(video)),
-            })
+            .filter_map(
+                |video| match video.title.value.to_ascii_lowercase().contains("#shorts") {
+                    true => None,
+                    false => Some(Episode::from(video)),
+                },
+            )
             .enumerate()
             .map(|(count, ep)| ep.set_ep_number(Some(count.try_into().unwrap())))
             .collect();
 
-        let client = hyper::Client::new();
+        let https = HttpsConnector::new();
+        let client = hyper::Client::builder().build::<_, hyper::Body>(https);
 
         let uris = episodes
             .clone()
             .into_iter()
             .map(|ep| ep.get_yt_link())
+            .map(|s| {
+                println!("{s}");
+                s
+            })
             .map(|s| s.parse::<hyper::http::Uri>().unwrap());
 
         let urls = futures::stream::iter(uris)
