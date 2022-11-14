@@ -42,7 +42,7 @@ impl Feed {
         let episodes: Vec<Episode> = feed
             .videos
             .into_iter()
-            .filter_map(|video| match video.title.value.contains("#Shorts") {
+            .filter_map(|video| match video.title.value.to_ascii_lowercase().contains("#shorts") {
                 true => None,
                 false => Some(Episode::from(video)),
             })
