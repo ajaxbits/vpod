@@ -82,6 +82,7 @@ pub async fn update_feed(new_feed: Feed, old_feed: Feed) -> Feed {
         None => 0,
     };
 
+    // TODO what if the new feed is entirely new?? I don't think I've accounted for this
     let eps = if start_index == 1 {
         old_eps
     } else {
