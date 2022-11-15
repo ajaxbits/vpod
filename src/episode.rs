@@ -167,7 +167,7 @@ impl From<Item> for Episode {
         let itunes_info = item.itunes_ext().expect("item had no itunesextension");
         Episode {
             id: item.guid().expect("could not find id").to_owned(),
-            url: item.link().expect("could not find link").to_owned(),
+            url: item.enclosure().unwrap().url().to_owned(),
             episode: itunes_info.episode().map(|value| {
                 value
                     .parse::<u32>()
