@@ -90,28 +90,7 @@ async fn serve_rss(Path((cpfx, id)): Path<(String, String)>) -> impl IntoRespons
                 .unwrap()
                 .into();
 
-            let mut old_eps = old_feed.episodes.unwrap();
-            let new_eps = new_feed.episodes.as_ref().unwrap().to_owned();
-
-            let first = new_eps.first().unwrap();
-            let index = old_eps
-                .clone()
-                .into_iter()
-                .position(|ep| ep.id.value() == first.id.value());
-
-            if let Some(i) = index {
-                old_eps.truncate(i)
-            };
-
-            old_eps.extend(new_eps.into_iter());
-
-            let eps: Vec<Episode> = old_eps
-                .into_iter()
-                .enumerate()
-                .map(|(count, ep)| ep.set_ep_number(Some(count.try_into().unwrap())))
-                .collect();
-
-            new_feed.add_episodes(eps)
+            feed::update_feed(new_feed, old_feed).await
         }
         false => feed::Feed::new(&id).await,
     };

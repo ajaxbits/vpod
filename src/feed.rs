@@ -3,14 +3,17 @@ use hyper::{body, server::conn::Http};
 use rss::{
     extension::itunes::ITunesChannelExtensionBuilder, Channel, ChannelBuilder, ImageBuilder, Item,
 };
-use std::collections::{BTreeMap, HashMap};
+use std::{
+    collections::{BTreeMap, HashMap},
+    io::BufReader,
+};
 
 use vpod::{get_channel_description, get_channel_image, yt_xml::YtFeed};
 
 use super::episode::Episode;
 use hyper_tls::HttpsConnector;
 
-#[derive(Debug, Clone)]
+#[derive(Default, Debug, Clone, derive_builder::Builder)]
 pub struct Feed {
     pub image: String, //url
     pub title: String,
@@ -18,6 +21,83 @@ pub struct Feed {
     pub description: String,
     pub link: String,
     pub episodes: Option<Vec<Episode>>,
+}
+
+async fn add_episode_length(eps: Vec<Episode>) -> Vec<Episode> {
+    let https = HttpsConnector::new();
+    let client = hyper::Client::builder().build::<_, hyper::Body>(https);
+
+    let uris = eps
+        .clone()
+        .into_iter()
+        .map(|ep| ep.get_yt_link())
+        .map(|s| s.parse::<hyper::http::Uri>().unwrap());
+
+    let urls = futures::stream::iter(uris)
+        .map(move |uri| client.get(uri))
+        .buffered(15)
+        .then(|res| async {
+            let res = res.expect("Error making request: {}");
+            body::to_bytes(res).await.expect("err reading body!")
+        })
+        .then(|body| async {
+            tokio::time::sleep(tokio::time::Duration::from_millis(5)).await;
+            let body = String::from_utf8(body.into_iter().collect()).unwrap();
+            let length = body.find("lengthSeconds");
+            match length {
+                Some(i) => {
+                    let text = &body[i + 16..];
+                    let end = text.find('"').unwrap();
+                    let text = &text[..end];
+                    let duration = text
+                        .parse::<u32>()
+                        .expect("could not parse duration as u32!");
+                    duration
+                }
+                None => 1800,
+            }
+        })
+        .collect::<Vec<u32>>()
+        .await;
+
+    eps.into_iter()
+        .zip(urls.into_iter())
+        .map(|(episode, length)| episode.set_length(length))
+        .collect()
+}
+
+pub async fn update_feed(new_feed: Feed, old_feed: Feed) -> Feed {
+    let old_eps = old_feed.episodes.unwrap();
+    let mut new_eps = new_feed.episodes.as_ref().unwrap().to_owned();
+
+    let tail = old_eps.last().unwrap();
+
+    let start_index = match new_eps
+        .iter()
+        .rev()
+        .position(|ep| ep.id.value() == tail.id.value())
+    {
+        Some(i) => i + 1,
+        // TODO fix how these are ordered so we don't have to do this
+        None => 0,
+    };
+
+    let eps = if start_index == 1 {
+        old_eps
+    } else {
+        let new_eps = add_episode_length(new_eps.drain(start_index..).collect()).await;
+        old_eps
+            .into_iter()
+            .chain(new_eps.into_iter())
+            .enumerate()
+            .map(|(count, ep)| ep.set_ep_number(Some(count.try_into().unwrap())))
+            .collect()
+    };
+
+    Feed {
+        episodes: Some(eps),
+        ..new_feed
+    }
 }
 
 impl Feed {
@@ -49,63 +129,22 @@ impl Feed {
                     false => Some(Episode::from(video)),
                 },
             )
+            .rev()
             .enumerate()
             .map(|(count, ep)| ep.set_ep_number(Some(count.try_into().unwrap())))
             .collect();
 
-        let https = HttpsConnector::new();
-        let client = hyper::Client::builder().build::<_, hyper::Body>(https);
+        let episodes = add_episode_length(episodes).await;
 
-        let uris = episodes
-            .clone()
-            .into_iter()
-            .map(|ep| ep.get_yt_link())
-            .map(|s| {
-                println!("{s}");
-                s
-            })
-            .map(|s| s.parse::<hyper::http::Uri>().unwrap());
-
-        let urls = futures::stream::iter(uris)
-            .map(move |uri| client.get(uri))
-            .buffered(15)
-            .then(|res| async {
-                let res = res.expect("Error making request: {}");
-                body::to_bytes(res).await.expect("err reading body!")
-            })
-            .then(|body| async {
-                let body = String::from_utf8(body.into_iter().collect()).unwrap();
-                let length = body.find("lengthSeconds");
-                match length {
-                    Some(i) => {
-                        let text = &body[i + 16..];
-                        let end = text.find('"').unwrap();
-                        let text = &text[..end];
-                        let duration = text
-                            .parse::<u32>()
-                            .expect("could not parse duration as u32!");
-                        duration
-                    }
-                    None => 1800,
-                }
-            })
-            .collect::<Vec<u32>>()
-            .await;
-
-        let episodes = episodes
-            .into_iter()
-            .zip(urls.into_iter())
-            .map(|(episode, length)| episode.set_length(length))
-            .collect();
-
-        Feed {
-            image: channel_image,
-            title: feed.title.value,
-            author: feed.author.name.value,
-            description: channel_description,
-            link: feed.author.uri.value,
-            episodes: Some(episodes),
-        }
+        FeedBuilder::default()
+            .image(channel_image)
+            .title(feed.title.value)
+            .author(feed.author.name.value)
+            .description(channel_description)
+            .link(feed.author.uri.value)
+            .episodes(Some(episodes))
+            .build()
+            .expect("could not build feed!")
     }
 }
 
