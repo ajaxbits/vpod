@@ -26,7 +26,7 @@ FROM debian:11.3-slim
 RUN set -eux; \
 		export DEBIAN_FRONTEND=noninteractive; \
 	  apt update; \
-		apt install --yes --no-install-recommends bind9-dnsutils iputils-ping iproute2 tzdata ca-certificates python3-pip; \
+		apt install --yes --no-install-recommends bind9-dnsutils tzdata ca-certificates python3-pip ffmpeg; \
         python3 -m pip install -U yt-dlp; \
 		apt clean autoclean; \
 		apt autoremove --yes; \
