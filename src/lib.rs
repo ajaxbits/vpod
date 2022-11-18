@@ -40,27 +40,32 @@ pub async fn get_channel_description(url: &str) -> Result<String, Box<dyn std::e
     let description = document
         .select(&selector)
         .next()
-        .map(|el| el.value().attr("content").unwrap())
-        .expect("could not find description for channel");
+        .map(|el| el.value().attr("content").unwrap());
 
-    Ok(description.to_string())
+    let description = match description {
+        Some(description) => description.to_owned(),
+        None => String::new(),
+    };
+
+    Ok(description)
 }
 
 pub async fn get_video_length(url: &str) -> Result<u32, Box<dyn std::error::Error>> {
     let resp = reqwest::get(url).await?;
     let text = resp.text().await?;
     let length = text.find("lengthSeconds");
-    match length {
+    let length = match length {
         Some(i) => {
             let text = &text[i + 16..];
             let end = text.find('"').unwrap();
             let text = &text[..end];
-            Ok(text
-                .parse::<u32>()
-                .expect("could not parse duration as u32!"))
+            text.parse::<u32>()
+                .expect("could not parse duration as u32!")
         }
-        None => Ok(1800),
-    }
+        None => 1800,
+    };
+
+    Ok(length)
 }
 
 #[cfg(test)]
