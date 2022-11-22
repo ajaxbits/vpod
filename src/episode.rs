@@ -227,7 +227,7 @@ impl From<youtube_dl::SingleVideo> for Episode {
 impl From<Episode> for rss::Item {
     fn from(ep: Episode) -> Self {
         let enclosure: rss::Enclosure = rss::EnclosureBuilder::default()
-            .mime_type("audio/m4a".to_owned())
+            .mime_type("audio/x-m4a".to_owned())
             .length(ep.duration_secs.to_string())
             .url(ep.url)
             .build();
