@@ -1,5 +1,5 @@
-use futures::StreamExt;
-use hyper::{body, server::conn::Http};
+use futures::{Future, FutureExt, Stream, StreamExt};
+use hyper::{body, server::conn::Http, Uri};
 use rss::{
     extension::itunes::ITunesChannelExtensionBuilder, Channel, ChannelBuilder, ImageBuilder, Item,
 };
@@ -7,6 +7,8 @@ use std::{
     collections::{BTreeMap, HashMap},
     io::BufReader,
 };
+use tokio::process::Command;
+use youtube_dl::YoutubeDl;
 
 use vpod::{get_channel_description, get_channel_image, yt_xml::YtFeed};
 
@@ -33,8 +35,9 @@ async fn add_episode_length(eps: Vec<Episode>) -> Vec<Episode> {
         .map(|ep| ep.get_yt_link())
         .map(|s| s.parse::<hyper::http::Uri>().unwrap());
 
-    let urls = futures::stream::iter(uris)
-        .map(move |uri| client.get(uri))
+    let urls = futures::stream::iter(uris).map(|uri| client.get(uri));
+
+    let urls = urls
         .buffered(15)
         .then(|res| async {
             let res = res.expect("Error making request: {}");
@@ -78,11 +81,11 @@ pub async fn update_feed(new_feed: Feed, old_feed: Feed) -> Feed {
         .position(|ep| ep.id.value() == tail.id.value())
     {
         Some(i) => i + 1,
-        // TODO fix how these are ordered so we don't have to do this
+        // TODO: fix how these are ordered so we don't have to do this
         None => 0,
     };
 
-    // TODO what if the new feed is entirely new?? I don't think I've accounted for this
+    // TODO: what if the new feed is entirely new?? I don't think I've accounted for this
     let eps = if start_index == 1 {
         old_eps
     } else {
@@ -102,10 +105,31 @@ pub async fn update_feed(new_feed: Feed, old_feed: Feed) -> Feed {
 }
 
 impl Feed {
+    async fn get_ep_future(url: &str) {
+        let process = Command::new("yt-dlp").args(vec!["--dump-json", "--quiet", url]);
+        todo!()
+    }
     pub async fn new(id: &str) -> Self {
-        let feed = YtFeed::from_channel_id(id).await;
+        let feed = yt_feed_xml::Channel::new(id).await;
         let feed = Feed::from_yt_feed(feed).await;
         feed
+        // let episodes = &mut feed.episodes.as_mut().unwrap();
+
+        // let commands = episodes.into_iter().map(|ep| ep.get_yt_link()).map(|url| {
+        //     Command::new("yt-dlp")
+        //         .args(vec!["--dump-json", "--quiet", &url])
+        //         .spawn()
+        //         .expect("failed to spawn command")
+        //         .wait_with_output()
+        // });
+
+        // let wow = futures::stream::iter(commands)
+        //     .buffered(15)
+        //     .map(|res| res.unwrap().stdout)
+        //     .map(|bytes| String::from_utf8(bytes).unwrap())
+        //     .collect::<Vec<_>>();
+
+        // todo!()
     }
 
     pub fn add_episodes(self, episodes: Vec<Episode>) -> Self {
@@ -115,17 +139,16 @@ impl Feed {
         }
     }
 
-    pub async fn from_yt_feed(feed: YtFeed) -> Self {
-        let channel_image = get_channel_image(&feed.author.uri.value).await.unwrap();
-        let channel_description = get_channel_description(&feed.author.uri.value)
-            .await
-            .unwrap();
+    pub async fn from_yt_feed(channel: yt_feed_xml::Channel) -> Self {
+        let channel_image = get_channel_image(&channel.channel_url).await.unwrap();
+        let channel_description = get_channel_description(&channel.channel_url).await.unwrap();
 
-        let episodes: Vec<Episode> = feed
+        let episodes: Vec<Episode> = channel
             .videos
+            .expect("this channel should have at least one video")
             .into_iter()
             .filter_map(
-                |video| match video.title.value.to_ascii_lowercase().contains("#shorts") {
+                |video| match video.title.to_ascii_lowercase().contains("#shorts") {
                     true => None,
                     false => Some(Episode::from(video)),
                 },
@@ -139,10 +162,10 @@ impl Feed {
 
         FeedBuilder::default()
             .image(channel_image)
-            .title(feed.title.value)
-            .author(feed.author.name.value)
+            .title(channel.title)
+            .author(channel.author)
             .description(channel_description)
-            .link(feed.author.uri.value)
+            .link(channel.channel_url)
             .episodes(Some(episodes))
             .build()
             .expect("could not build feed!")

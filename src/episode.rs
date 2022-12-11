@@ -133,10 +133,10 @@ impl Episode {
 //}
 //}
 
-impl From<Video> for Episode {
-    fn from(video: Video) -> Self {
+impl From<yt_feed_xml::Video> for Episode {
+    fn from(video: yt_feed_xml::Video) -> Self {
         Episode {
-            id: GuidBuilder::default().value(&video.video_id.value).build(),
+            id: GuidBuilder::default().value(&video.id).build(),
             url: format!(
                 "{}/ep/{}",
                 env::var("NGROK_URL").unwrap_or_else(|err| {
@@ -148,16 +148,16 @@ impl From<Video> for Episode {
                         panic!("could not find $NGROK_URL or $FLY_APP_NAME in env");
                     }
                 }),
-                &video.video_id.value
+                &video.id
             ),
             episode: None,
-            title: video.title.value,
+            title: video.title,
             duration_str: "00:30:00".to_string(),
             duration_secs: 1800,
-            author: video.author.name.value,
-            date: video.published.value.to_rfc2822(),
-            link: video.link.href,
-            description: video.group.description.value,
+            author: video.author,
+            date: video.published.to_rfc2822(),
+            link: video.url,
+            description: video.description,
         }
     }
 }
