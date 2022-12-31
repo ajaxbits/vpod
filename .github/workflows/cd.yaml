@@ -15,18 +15,17 @@ jobs:
     steps:
       - uses: actions/checkout@v3
 
-      # In this step, this action saves a list of existing images,
-      # the cache is created without them in the post run.
-      # It also restores the cache if it exists.
-      - uses: satackey/action-docker-layer-caching@v0.0.11
-        # Ignore the failure of a step and avoid terminating the job.
-        continue-on-error: true
-
-      - name: Build the Docker image
-        run: docker build . --file Dockerfile --tag vpod:dev
+      - name: Build and push
+        uses: docker/build-push-action@v3
+        with:
+          context: .
+          push: false
+          tags: "vpod:dev"
+          cache-from: type=gha
+          cache-to: type=gha,mode=max
 
       - uses: superfly/flyctl-actions/setup-flyctl@master
 
-      - run: flyctl deploy --config fly.staging.toml --remote-only
+      - run: flyctl deploy --config fly.staging.toml --local-only
 
 
