@@ -219,7 +219,10 @@ impl Feed {
 
         Feed {
             image: channel_image,
-            title: channel.title,
+            title: match std::env::var("ENV") {
+                Ok(var) if var == "staging" => format!("🟡 {}", channel.title).to_owned(),
+                _ => channel.title,
+            },
             author: channel.author,
             description: channel_description,
             link: channel.channel_url,
