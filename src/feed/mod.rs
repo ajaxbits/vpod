@@ -99,13 +99,13 @@ impl<'de> Deserialize<'de> for YtPathType {
 }
 
 #[derive(Debug, Clone)]
-pub struct Feed {
-    pub image: String, //url
-    pub title: String,
-    pub author: String,
-    pub description: String,
-    pub link: String,
-    pub episodes: Option<Vec<Episode>>,
+struct Feed {
+    image: String, //url
+    title: String,
+    author: String,
+    description: String,
+    link: String,
+    episodes: Option<Vec<Episode>>,
 }
 
 async fn add_episode_length(eps: Vec<Episode>) -> Vec<Episode> {
@@ -194,14 +194,7 @@ impl Feed {
         feed
     }
 
-    pub fn add_episodes(self, episodes: Vec<Episode>) -> Self {
-        Feed {
-            episodes: Some(episodes),
-            ..self
-        }
-    }
-
-    pub async fn from_yt_feed(channel: yt_feed_xml::Channel) -> Self {
+    async fn from_yt_feed(channel: yt_feed_xml::Channel) -> Self {
         let channel_image = utils::get_channel_image(&channel.channel_url)
             .await
             .unwrap();
