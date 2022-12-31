@@ -1,5 +1,3 @@
-pub mod yt_xml;
-
 use scraper::{Html, Selector};
 
 async fn get_html(url: &str) -> Result<Html, Box<dyn std::error::Error>> {
@@ -50,24 +48,6 @@ pub async fn get_channel_description(url: &str) -> Result<String, Box<dyn std::e
     Ok(description)
 }
 
-pub async fn get_video_length(url: &str) -> Result<u32, Box<dyn std::error::Error>> {
-    let resp = reqwest::get(url).await?;
-    let text = resp.text().await?;
-    let length = text.find("lengthSeconds");
-    let length = match length {
-        Some(i) => {
-            let text = &text[i + 16..];
-            let end = text.find('"').unwrap();
-            let text = &text[..end];
-            text.parse::<u32>()
-                .expect("could not parse duration as u32!")
-        }
-        None => 1800,
-    };
-
-    Ok(length)
-}
-
 #[cfg(test)]
 mod tests {
     // Note this useful idiom: importing names from outer (for mod tests) scope.
@@ -108,12 +88,5 @@ mod tests {
             .unwrap(),
             image
         );
-    }
-
-    #[tokio::test]
-    async fn test_video_length() {
-        let url = "https://www.youtube.com/watch?v=rAl-9HwD858&list=PLqbS7AVVErFiWDOAVrPt7aYmnuuOLYvOa&index=1";
-        let length = 5603;
-        assert_eq!(get_video_length(&url).await.unwrap(), length);
     }
 }

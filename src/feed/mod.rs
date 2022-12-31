@@ -1,21 +1,104 @@
-use futures::{Future, FutureExt, Stream, StreamExt};
-use hyper::{body, server::conn::Http, Uri};
-use rss::{
-    extension::itunes::ITunesChannelExtensionBuilder, Channel, ChannelBuilder, ImageBuilder, Item,
-};
-use std::{
-    collections::{BTreeMap, HashMap},
-    io::BufReader,
-};
-use tokio::process::Command;
-use youtube_dl::YoutubeDl;
+use std::{collections::BTreeMap, io::BufReader};
 
-use vpod::{get_channel_description, get_channel_image, yt_xml::YtFeed};
+use axum::{extract::Path, response::IntoResponse, routing::get_service};
+use futures::StreamExt;
+use hyper::body;
+use rss::{extension::itunes::ITunesChannelExtensionBuilder, ChannelBuilder, ImageBuilder, Item};
+use serde::Deserialize;
+use tower::ServiceExt;
 
-use super::episode::Episode;
-use hyper_tls::HttpsConnector;
+mod episode;
+mod utils;
+use episode::Episode;
 
-#[derive(Default, Debug, Clone, derive_builder::Builder)]
+// #[axum::debug_handler]
+pub async fn serve_rss(Path(YtPath { path_type, val }): Path<YtPath>) -> impl IntoResponse {
+    let yt_url = match path_type {
+        YtPathType::Handle(handle) => format!("https://www.youtube.com/{handle}"),
+        YtPathType::Abbrev(type_string)
+        | YtPathType::Full(type_string)
+        | YtPathType::User(type_string) => format!(
+            "https://www.youtube.com/{}/{}",
+            type_string,
+            val.expect(&format!("This path type must have a val"))
+        ),
+    };
+
+    let id = utils::get_channel_id(&yt_url)
+        .await
+        .expect("could not get channel_id");
+
+    let path = format!("{id}.xml");
+
+    let req = hyper::Request::builder()
+        .body(axum::body::Body::empty())
+        .unwrap();
+
+    let service =
+        get_service(tower_http::services::ServeFile::new(&path)).handle_error(crate::handle_error);
+
+    let feed = match std::path::Path::new(&path).exists() {
+        true => {
+            let new_feed = Feed::new(&id);
+            let old_file = std::fs::File::open(&path).unwrap();
+            let new_feed = new_feed.await;
+
+            let old_feed: Feed = rss::Channel::read_from(BufReader::new(&old_file))
+                .unwrap()
+                .into();
+
+            update_feed(new_feed, old_feed).await
+        }
+        false => Feed::new(&id).await,
+    };
+
+    let channel = rss::Channel::from(feed.clone());
+    let file = std::fs::File::create(&path).unwrap_or_else(|_| panic!("could ot create {id}.xml"));
+    channel.write_to(file).unwrap();
+
+    let result = service.oneshot(req).await;
+
+    result
+}
+
+#[derive(Deserialize)]
+pub struct YtPath {
+    path_type: YtPathType,
+    val: Option<String>,
+}
+
+#[derive(Debug)]
+enum YtPathType {
+    Handle(String),
+    Abbrev(String),
+    Full(String),
+    User(String),
+}
+
+impl<'de> Deserialize<'de> for YtPathType {
+    fn deserialize<D>(deserializer: D) -> Result<Self, D::Error>
+    where
+        D: serde::Deserializer<'de>,
+    {
+        let s = String::deserialize(deserializer)?;
+        if &s[..1] == "@" {
+            Ok(Self::Handle(s))
+        } else if &s == "c" {
+            Ok(Self::Abbrev(s))
+        } else if &s == "channel" {
+            Ok(Self::Full(s))
+        } else if &s == "user" {
+            Ok(Self::User(s))
+        } else {
+            Err(serde::de::Error::custom(format!(
+                "Invalid path type '{}'",
+                &s
+            )))
+        }
+    }
+}
+
+#[derive(Debug, Clone)]
 pub struct Feed {
     pub image: String, //url
     pub title: String,
@@ -26,7 +109,7 @@ pub struct Feed {
 }
 
 async fn add_episode_length(eps: Vec<Episode>) -> Vec<Episode> {
-    let https = HttpsConnector::new();
+    let https = hyper_tls::HttpsConnector::new();
     let client = hyper::Client::builder().build::<_, hyper::Body>(https);
 
     let uris = eps
@@ -69,7 +152,7 @@ async fn add_episode_length(eps: Vec<Episode>) -> Vec<Episode> {
         .collect()
 }
 
-pub async fn update_feed(new_feed: Feed, old_feed: Feed) -> Feed {
+async fn update_feed(new_feed: Feed, old_feed: Feed) -> Feed {
     let old_eps = old_feed.episodes.unwrap();
     let mut new_eps = new_feed.episodes.as_ref().unwrap().to_owned();
 
@@ -105,31 +188,10 @@ pub async fn update_feed(new_feed: Feed, old_feed: Feed) -> Feed {
 }
 
 impl Feed {
-    async fn get_ep_future(url: &str) {
-        let process = Command::new("yt-dlp").args(vec!["--dump-json", "--quiet", url]);
-        todo!()
-    }
-    pub async fn new(id: &str) -> Self {
+    async fn new(id: &str) -> Self {
         let feed = yt_feed_xml::Channel::new(id).await;
         let feed = Feed::from_yt_feed(feed).await;
         feed
-        // let episodes = &mut feed.episodes.as_mut().unwrap();
-
-        // let commands = episodes.into_iter().map(|ep| ep.get_yt_link()).map(|url| {
-        //     Command::new("yt-dlp")
-        //         .args(vec!["--dump-json", "--quiet", &url])
-        //         .spawn()
-        //         .expect("failed to spawn command")
-        //         .wait_with_output()
-        // });
-
-        // let wow = futures::stream::iter(commands)
-        //     .buffered(15)
-        //     .map(|res| res.unwrap().stdout)
-        //     .map(|bytes| String::from_utf8(bytes).unwrap())
-        //     .collect::<Vec<_>>();
-
-        // todo!()
     }
 
     pub fn add_episodes(self, episodes: Vec<Episode>) -> Self {
@@ -140,8 +202,12 @@ impl Feed {
     }
 
     pub async fn from_yt_feed(channel: yt_feed_xml::Channel) -> Self {
-        let channel_image = get_channel_image(&channel.channel_url).await.unwrap();
-        let channel_description = get_channel_description(&channel.channel_url).await.unwrap();
+        let channel_image = utils::get_channel_image(&channel.channel_url)
+            .await
+            .unwrap();
+        let channel_description = utils::get_channel_description(&channel.channel_url)
+            .await
+            .unwrap();
 
         let episodes: Vec<Episode> = channel
             .videos
@@ -160,19 +226,18 @@ impl Feed {
 
         let episodes = add_episode_length(episodes).await;
 
-        FeedBuilder::default()
-            .image(channel_image)
-            .title(channel.title)
-            .author(channel.author)
-            .description(channel_description)
-            .link(channel.channel_url)
-            .episodes(Some(episodes))
-            .build()
-            .expect("could not build feed!")
+        Feed {
+            image: channel_image,
+            title: channel.title,
+            author: channel.author,
+            description: channel_description,
+            link: channel.channel_url,
+            episodes: Some(episodes),
+        }
     }
 }
 
-impl From<Feed> for Channel {
+impl From<Feed> for rss::Channel {
     fn from(feed: Feed) -> Self {
         let itunes_ns: BTreeMap<String, String> = BTreeMap::from([
             (
@@ -209,8 +274,8 @@ impl From<Feed> for Channel {
     }
 }
 
-impl From<Channel> for Feed {
-    fn from(channel: Channel) -> Self {
+impl From<rss::Channel> for Feed {
+    fn from(channel: rss::Channel) -> Self {
         let itunes_metadata = channel.itunes_ext().unwrap();
         let episodes: Vec<Episode> = channel
             .clone()

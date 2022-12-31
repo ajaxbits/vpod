@@ -1,14 +1,10 @@
-use chrono::{Duration, NaiveDate};
-use rss::{
-    extension::{
-        itunes::{ITunesItemExtension, ITunesItemExtensionBuilder},
-        ExtensionBuilder,
-    },
-    GuidBuilder, Item, ItemBuilder,
+use std::{collections::BTreeMap, env};
+
+use chrono::Duration;
+use rss::extension::{
+    itunes::{ITunesItemExtension, ITunesItemExtensionBuilder},
+    ExtensionBuilder,
 };
-use std::collections::BTreeMap;
-use std::env;
-use vpod::yt_xml::Video;
 
 #[derive(Debug, Clone, PartialEq)]
 pub struct Episode {
@@ -24,74 +20,7 @@ pub struct Episode {
     description: String,
 }
 
-pub fn gen_description(description: String) -> String {
-    let description: String = description
-        .split('\n')
-        .into_iter()
-        .map(|line| {
-            format!(
-                "<p>{}</p>",
-                html_escape::encode_text_to_string(line, &mut String::new())
-            )
-        })
-        .collect();
-    description
-}
-
-fn gen_duration_str(duration: Duration) -> String {
-    let hours = duration.num_hours();
-    let minutes = duration.num_minutes() - (&duration.num_hours() * 60);
-    let seconds = duration.num_seconds() - (&duration.num_minutes() * 60);
-
-    let time: Vec<String> = vec![hours, minutes, seconds]
-        .into_iter()
-        .map(|number| format!("{number}"))
-        .map(|time_str| match time_str.chars().count() {
-            1 => format!("0{time_str}"),
-            _ => time_str,
-        })
-        .collect();
-
-    format!("{}:{}:{}", time[0], time[1], time[2])
-}
-
 impl Episode {
-    pub fn new(
-        id: String,
-        title: String,
-        duration: Duration,
-        uploader: String,
-        date: String,
-        description: String,
-    ) -> Self {
-        Episode {
-            id: GuidBuilder::default()
-                .value(id.clone())
-                .permalink(false)
-                .build(),
-            url: format!(
-                "{}/ep/{}",
-                env::var("NGROK_URL").unwrap_or_else(|err| {
-                    if err == env::VarError::NotPresent {
-                        let app_name =
-                            env::var("FLY_APP_NAME").expect("could not find $FLY_APP_NAME");
-                        format!("https://{app_name}.fly.dev")
-                    } else {
-                        panic!("could not find $NGROK_URL or $FLY_APP_NAME in env");
-                    }
-                }),
-                id
-            ),
-            episode: None,
-            title,
-            duration_str: gen_duration_str(duration),
-            duration_secs: u32::try_from(duration.num_seconds()).ok().unwrap(),
-            author: uploader,
-            date,
-            link: format!("https://www.youtube.com/watch?v={}", id),
-            description,
-        }
-    }
     pub fn set_ep_number(self, number: Option<u32>) -> Self {
         Episode {
             episode: number,
@@ -99,44 +28,41 @@ impl Episode {
         }
     }
 
-    pub fn get_ep_number(&self) -> Option<u32> {
-        self.episode
-    }
-
     pub fn get_yt_link(&self) -> String {
         self.link.to_owned()
     }
 
     pub fn set_length(self, length: u32) -> Self {
+        let duration_str = {
+            let duration = Duration::seconds(length.into());
+            let hours = duration.num_hours();
+            let minutes = duration.num_minutes() - (&duration.num_hours() * 60);
+            let seconds = duration.num_seconds() - (&duration.num_minutes() * 60);
+
+            let time: Vec<String> = vec![hours, minutes, seconds]
+                .into_iter()
+                .map(|number| format!("{number}"))
+                .map(|time_str| match time_str.chars().count() {
+                    1 => format!("0{time_str}"),
+                    _ => time_str,
+                })
+                .collect();
+
+            format!("{}:{}:{}", time[0], time[1], time[2])
+        };
+
         Self {
             duration_secs: length,
-            duration_str: gen_duration_str(Duration::seconds(length.into())),
+            duration_str,
             ..self
         }
     }
 }
 
-//impl PartialEq for Episode {
-//fn eq(&self, other: &Self) -> bool {
-//let id = self.id.value() == other.id.value();
-//let url = self.url == other.url;
-//let title = self.title == other.title;
-//let duration_str = self.duration_str == other.duration_str;
-//let duration_secs = self.duration_secs == other.duration_secs;
-//let author = self.author == other.author;
-//let date = self.date == other.date;
-//let link = self.link == other.link;
-//let description = self.description == other.description;
-
-//return id && url && title && duration
-
-//}
-//}
-
 impl From<yt_feed_xml::Video> for Episode {
     fn from(video: yt_feed_xml::Video) -> Self {
         Episode {
-            id: GuidBuilder::default().value(&video.id).build(),
+            id: rss::GuidBuilder::default().value(&video.id).build(),
             url: format!(
                 "{}/ep/{}",
                 env::var("NGROK_URL").unwrap_or_else(|err| {
@@ -162,8 +88,8 @@ impl From<yt_feed_xml::Video> for Episode {
     }
 }
 
-impl From<Item> for Episode {
-    fn from(item: Item) -> Self {
+impl From<rss::Item> for Episode {
+    fn from(item: rss::Item) -> Self {
         let itunes_info = item.itunes_ext().expect("item had no itunesextension");
         Episode {
             id: item.guid().expect("could not find id").to_owned(),
@@ -193,37 +119,6 @@ impl From<Item> for Episode {
     }
 }
 
-impl From<youtube_dl::SingleVideo> for Episode {
-    fn from(video: youtube_dl::SingleVideo) -> Self {
-        let duration = video
-            .duration
-            .unwrap_or_else(|| panic!("could not find a duration for {}", video.id))
-            .as_i64()
-            .expect("could not convert duration to i64");
-        let duration = Duration::seconds(duration);
-
-        let date = NaiveDate::parse_from_str(
-            &video
-                .upload_date
-                .unwrap_or_else(|| panic!("Could not find an upload_date for {}", video.id)),
-            "%Y%m%d",
-        )
-        .map(|date| date.and_hms(0, 0, 0))
-        .unwrap_or_else(|_| panic!("could not parse video {}'s upload date as str", video.id,));
-
-        let date = chrono::DateTime::<chrono::Utc>::from_utc(date, chrono::Utc).to_rfc2822();
-
-        Episode::new(
-            video.id,
-            video.title,
-            duration,
-            video.uploader.unwrap(),
-            date,
-            gen_description(video.description.unwrap()),
-        )
-    }
-}
-
 impl From<Episode> for rss::Item {
     fn from(ep: Episode) -> Self {
         let enclosure: rss::Enclosure = rss::EnclosureBuilder::default()
@@ -250,7 +145,7 @@ impl From<Episode> for rss::Item {
                 .build()],
         )]);
 
-        let item: Item = ItemBuilder::default()
+        let item: rss::Item = rss::ItemBuilder::default()
             .guid(Some(ep.id))
             .pub_date(Some(ep.date))
             .title(Some(ep.title))
