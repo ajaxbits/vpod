@@ -220,7 +220,7 @@ impl Feed {
         Feed {
             image: channel_image,
             title: match std::env::var("ENV") {
-                Ok(var) if var == "staging" => format!("%F0%9F%9F%A1 {}", channel.title).to_owned(),
+                Ok(var) if var == "staging" => format!("[β] {}", channel.title).to_owned(),
                 _ => channel.title,
             },
             author: channel.author,
