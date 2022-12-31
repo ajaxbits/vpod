@@ -80,22 +80,14 @@ impl<'de> Deserialize<'de> for YtPathType {
 
 // #[axum::debug_handler]
 async fn serve_rss(Path(YtPath { path_type, val }): Path<YtPath>) -> impl IntoResponse {
-    let yt_url = match dbg!(path_type) {
+    let yt_url = match path_type {
         YtPathType::Handle(handle) => format!("https://www.youtube.com/{handle}"),
-        YtPathType::Abbrev(type_string) => format!(
+        YtPathType::Abbrev(type_string)
+        | YtPathType::Full(type_string)
+        | YtPathType::User(type_string) => format!(
             "https://www.youtube.com/{}/{}",
             type_string,
-            val.expect("The Abbrev path type must have a val")
-        ),
-        YtPathType::Full(type_string) => format!(
-            "https://www.youtube.com/{}/{}",
-            type_string,
-            val.expect("The Full path type must have a val")
-        ),
-        YtPathType::User(type_string) => format!(
-            "https://www.youtube.com/{}/{}",
-            type_string,
-            val.expect("The Full path type must have a val")
+            val.expect(&format!("This path type must have a val"))
         ),
     };
 
