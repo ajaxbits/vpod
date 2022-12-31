@@ -20,7 +20,7 @@ pub async fn serve_rss(Path(YtPath { path_type, val }): Path<YtPath>) -> impl In
         | YtPathType::User(type_string) => format!(
             "https://www.youtube.com/{}/{}",
             type_string,
-            val.expect(&format!("This path type must have a val"))
+            val.expect("This path type must have a val")
         ),
     };
 
@@ -135,10 +135,8 @@ async fn add_episode_length(eps: Vec<Episode>) -> Vec<Episode> {
                     let text = &body[i + 16..];
                     let end = text.find('"').unwrap();
                     let text = &text[..end];
-                    let duration = text
-                        .parse::<u32>()
-                        .expect("could not parse duration as u32!");
-                    duration
+                    text.parse::<u32>()
+                        .expect("could not parse duration as u32!")
                 }
                 None => 1800,
             }

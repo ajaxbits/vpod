@@ -7,7 +7,7 @@ async fn get_html(url: &str) -> Result<Html, Box<dyn std::error::Error>> {
 }
 
 pub async fn get_channel_id(url: &str) -> Result<String, Box<dyn std::error::Error>> {
-    let document = get_html(&url).await?;
+    let document = get_html(url).await?;
     let selector = Selector::parse(r#"body > link[rel="canonical"]"#).unwrap();
     let link = document
         .select(&selector)
@@ -21,7 +21,7 @@ pub async fn get_channel_id(url: &str) -> Result<String, Box<dyn std::error::Err
 }
 
 pub async fn get_channel_image(url: &str) -> Result<String, Box<dyn std::error::Error>> {
-    let document = get_html(&url).await?;
+    let document = get_html(url).await?;
     let selector = Selector::parse(r#"body > meta[property="og:image"]"#).unwrap();
     let link = document
         .select(&selector)
@@ -33,7 +33,7 @@ pub async fn get_channel_image(url: &str) -> Result<String, Box<dyn std::error::
 }
 
 pub async fn get_channel_description(url: &str) -> Result<String, Box<dyn std::error::Error>> {
-    let document = get_html(&url).await?;
+    let document = get_html(url).await?;
     let selector = Selector::parse(r#"body > meta[property="og:description"]"#).unwrap();
     let description = document
         .select(&selector)
