@@ -35,5 +35,5 @@ tokio-util = "0.7.4"
 tower = "0.4.13"
 tower-http = { version = "0.3.4", features = ["fs"] }
 youtube_dl = { version = "0.7.0", default-features = false, features = ["yt-dlp", "tokio"] }
-yt-feed-xml = "0.2.0"
+yt-feed-xml = "0.2.1"
 ytd-rs = { version = "0.1.7", features = ["yt-dlp"] }

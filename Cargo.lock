@@ -2913,12 +2913,12 @@ dependencies = [
 
 [[package]]
 name = "yt-feed-xml"
-version = "0.1.2"
+version = "0.2.1"
 source = "registry+https://github.com/rust-lang/crates.io-index"
-checksum = "6748ff2a17a92f8c721b165c8cb48a7db3a22aa6b4840fe7d323d9af4ada9d90"
+checksum = "4411640f03ce569ceca7fa49c67d461763b7b7e2fe4fc4ede9ef7ffa9a444470"
 dependencies = [
- "async-trait",
  "chrono",
+ "color-eyre",
  "derive_builder 0.12.0",
  "hyper",
  "hyper-tls",
