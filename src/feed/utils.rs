@@ -20,7 +20,7 @@ pub async fn get_channel_id(url: &str) -> Result<String, Box<dyn std::error::Err
     Ok(id)
 }
 
-pub async fn get_channel_image(url: &str) -> Result<String, Box<dyn std::error::Error>> {
+pub async fn get_feed_image(url: &str) -> Result<String, Box<dyn std::error::Error>> {
     let document = get_html(url).await?;
     let selector = Selector::parse(r#"body > meta[property="og:image"]"#).unwrap();
     let link = document
@@ -32,7 +32,7 @@ pub async fn get_channel_image(url: &str) -> Result<String, Box<dyn std::error::
     Ok(link.to_string())
 }
 
-pub async fn get_channel_description(url: &str) -> Result<String, Box<dyn std::error::Error>> {
+pub async fn get_feed_description(url: &str) -> Result<String, Box<dyn std::error::Error>> {
     let document = get_html(url).await?;
     let selector = Selector::parse(r#"body > meta[property="og:description"]"#).unwrap();
     let description = document
@@ -78,7 +78,7 @@ mod tests {
     async fn test_image() {
         let image = "https://yt3.ggpht.com/ytc/AMLnZu_ZK-GvsGbsEaBYo0q_u3NvSSDT__vlljY7nJohDg=s900-c-k-c0x00ffffff-no-rj";
         assert_eq!(
-            get_channel_image(&format!(
+            get_feed_image(&format!(
                 "https://www.youtube.com/channel/{}",
                 get_channel_id("https://www.youtube.com/c/OstonCodeCypher")
                     .await

@@ -11,7 +11,7 @@ lto = true
 # See more keys and their definitions at https://doc.rust-lang.org/cargo/reference/manifest.html
 
 [dependencies]
-axum = { version = "0.5.17", features = ["axum-macros"] }
+axum = { version = "0.5.17", features = ["axum-macros", "query"] }
 chrono = { version = "0.4.22", features = ["serde"] }
 color-eyre = "0.6.2"
 futures = "0.3.25"
@@ -33,5 +33,5 @@ tokio-util = "0.7.4"
 tower = "0.4.13"
 tower-http = { version = "0.3.4", features = ["fs"] }
 youtube_dl = { version = "0.7.0", default-features = false, features = ["yt-dlp", "tokio"] }
-yt-feed-xml = "0.2.1"
+yt-feed-xml = "0.2.2"
 ytd-rs = { version = "0.1.7", features = ["yt-dlp"] }
