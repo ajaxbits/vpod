@@ -193,10 +193,10 @@ impl Feed {
     }
 
     async fn from_yt_feed(channel: yt_feed_xml::Channel) -> Self {
-        let channel_image = utils::get_channel_image(&channel.channel_url)
+        let channel_image = utils::get_channel_image(&channel.url)
             .await
             .unwrap();
-        let channel_description = utils::get_channel_description(&channel.channel_url)
+        let channel_description = utils::get_channel_description(&channel.url)
             .await
             .unwrap();
 
@@ -225,7 +225,7 @@ impl Feed {
             },
             author: channel.author,
             description: channel_description,
-            link: channel.channel_url,
+            link: channel.url,
             episodes: Some(episodes),
         }
     }
