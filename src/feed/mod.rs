@@ -32,6 +32,7 @@ pub async fn serve_feed(
                 YtPathType::Abbrev(type_string)
                 | YtPathType::Full(type_string)
                 | YtPathType::Video(type_string)
+                | YtPathType::Playlist(type_string)
                 | YtPathType::User(type_string) => format!(
                     "https://www.youtube.com/{}/{}",
                     type_string,
@@ -94,6 +95,7 @@ enum YtPathType {
     Abbrev(String),
     Full(String),
     User(String),
+    Playlist(String),
     Video(String),
 }
 
@@ -113,6 +115,8 @@ impl<'de> Deserialize<'de> for YtPathType {
             Ok(Self::User(s))
         } else if &s == "watch" {
             Ok(Self::Video(s))
+        } else if &s == "playlist" {
+            Ok(Self::Playlist(s))
         } else {
             Err(serde::de::Error::custom(format!(
                 "Invalid path type '{}'",
