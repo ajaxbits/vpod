@@ -14,7 +14,6 @@ lto = true
 axum = { version = "0.5.17", features = ["axum-macros"] }
 chrono = { version = "0.4.22", features = ["serde"] }
 color-eyre = "0.6.2"
-derive_builder = "0.11.2"
 futures = "0.3.25"
 html-escape = "0.2.11"
 hyper = { version = "0.14.23", features = ["client", "http1", "tcp"] }
@@ -29,7 +28,6 @@ serde-xml-rs = "0.6.0"
 serde_derive = "1.0.145"
 serde_json = "1.0.86"
 serde_path_to_error = "0.1.8"
-sqlx = { version = "0.6.2", features = ["sqlite", "chrono", "runtime-tokio-native-tls"] }
 tokio = { version = "1.21.2", features = ["full"] }
 tokio-util = "0.7.4"
 tower = "0.4.13"
