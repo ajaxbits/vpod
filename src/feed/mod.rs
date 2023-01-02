@@ -1,6 +1,5 @@
 use std::{
     collections::{BTreeMap, HashMap},
-    fmt::format,
     io::BufReader,
 };
 
@@ -19,31 +18,37 @@ mod episode;
 mod utils;
 use episode::Episode;
 
-pub async fn get_playlist_feed(Query(query): Query<HashMap<String, String>>) -> impl IntoResponse {
-    let id = query.get("list").unwrap().to_owned();
-    serve_rss(id, FeedType::Playlist).await
+pub async fn serve_feed(
+    Path(YtPath { path_type, val }): Path<YtPath>,
+    Query(query): Query<HashMap<String, String>>,
+) -> impl IntoResponse {
+    match query.get("list") {
+        // Any link with the list query param is part of a playlist.
+        // We should aggressively grab that playlist.
+        Some(playlist_id) => gen_rss(playlist_id.to_owned(), FeedType::Playlist).await,
+        None => {
+            let yt_url = match path_type {
+                YtPathType::Handle(handle) => format!("https://www.youtube.com/{handle}"),
+                YtPathType::Abbrev(type_string)
+                | YtPathType::Full(type_string)
+                | YtPathType::Video(type_string)
+                | YtPathType::User(type_string) => format!(
+                    "https://www.youtube.com/{}/{}",
+                    type_string,
+                    val.expect("This path type must have a val")
+                ),
+            };
+
+            let id = utils::get_channel_id(&yt_url)
+                .await
+                .expect("could not get channel_id");
+
+            gen_rss(id, FeedType::Channel).await
+        }
+    }
 }
 
-pub async fn get_channel_feed(Path(YtPath { path_type, val }): Path<YtPath>) -> impl IntoResponse {
-    let yt_url = match path_type {
-        YtPathType::Handle(handle) => format!("https://www.youtube.com/{handle}"),
-        YtPathType::Abbrev(type_string)
-        | YtPathType::Full(type_string)
-        | YtPathType::User(type_string) => format!(
-            "https://www.youtube.com/{}/{}",
-            type_string,
-            val.expect("This path type must have a val")
-        ),
-    };
-
-    let id = utils::get_channel_id(&yt_url)
-        .await
-        .expect("could not get channel_id");
-
-    serve_rss(id, FeedType::Channel).await
-}
-
-async fn serve_rss(id: String, feed_type: FeedType) -> impl IntoResponse {
+async fn gen_rss(id: String, feed_type: FeedType) -> impl IntoResponse {
     let path = format!("{feed_type}-{id}.xml");
 
     let req = hyper::Request::builder()
@@ -89,6 +94,7 @@ enum YtPathType {
     Abbrev(String),
     Full(String),
     User(String),
+    Video(String),
 }
 
 impl<'de> Deserialize<'de> for YtPathType {
@@ -105,6 +111,8 @@ impl<'de> Deserialize<'de> for YtPathType {
             Ok(Self::Full(s))
         } else if &s == "user" {
             Ok(Self::User(s))
+        } else if &s == "watch" {
+            Ok(Self::Video(s))
         } else {
             Err(serde::de::Error::custom(format!(
                 "Invalid path type '{}'",
