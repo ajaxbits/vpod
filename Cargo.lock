@@ -2494,9 +2494,9 @@ dependencies = [
 
 [[package]]
 name = "yt-feed-xml"
-version = "0.2.1"
+version = "0.2.2"
 source = "registry+https://github.com/rust-lang/crates.io-index"
-checksum = "4411640f03ce569ceca7fa49c67d461763b7b7e2fe4fc4ede9ef7ffa9a444470"
+checksum = "a44c76fb0a950d85fbf732e08b6b51087c6e1ecf33d6c5d91deb3bd3560964af"
 dependencies = [
  "chrono",
  "color-eyre",
