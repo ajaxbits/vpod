@@ -9,15 +9,15 @@ use rss::extension::{
 #[derive(Debug, Clone, PartialEq)]
 pub struct Episode {
     pub id: rss::Guid,
-    url: String,
-    episode: Option<u32>,
-    title: String,
-    duration_str: String,
-    duration_secs: u32,
-    author: String,
-    date: String,
-    link: String,
-    description: String,
+    pub url: String,
+    pub episode: Option<u32>,
+    pub title: String,
+    pub duration_str: String,
+    pub duration_secs: u32,
+    pub author: String,
+    pub date: String,
+    pub link: String,
+    pub description: String,
 }
 
 impl Episode {

@@ -246,27 +246,16 @@ impl Feed {
         let channel_image = utils::get_feed_image(&channel.url).await.unwrap();
         let channel_description = utils::get_feed_description(&channel.url).await.unwrap();
 
-        let episodes: Vec<Episode> = channel
+        let episodes: Vec<yt_feed_xml::Video> = channel
             .videos
-            .expect("this channel should have at least one video")
-            .into_iter()
-            .filter_map(
-                |video| match video.title.to_ascii_lowercase().contains("#shorts") {
-                    true => None,
-                    false => Some(Episode::from(video)),
-                },
-            )
-            .rev()
-            .enumerate()
-            .map(|(count, ep)| ep.set_ep_number(Some(count.try_into().unwrap())))
-            .collect();
+            .expect("this channel should have at least one video");
 
-        let episodes = add_episode_length(episodes).await;
+        let episodes: Vec<Episode> = process_videos(episodes).await;
 
         Feed {
             image: channel_image,
             title: match std::env::var("ENV") {
-                Ok(var) if var == "staging" => format!("[β] {}", channel.title).to_owned(),
+                Ok(var) if var == "staging" => format!("[β] {}", channel.title),
                 _ => channel.title,
             },
             author: channel.author,
@@ -280,22 +269,16 @@ impl Feed {
         let image = utils::get_feed_image(&pl.url).await.unwrap();
         let description = utils::get_feed_description(&pl.url).await.unwrap();
 
-        let episodes: Vec<Episode> = pl
+        let episodes: Vec<yt_feed_xml::Video> = pl
             .videos
-            .expect("this playlist should have at least one video")
-            .into_iter()
-            .map(Episode::from)
-            .rev()
-            .enumerate()
-            .map(|(count, ep)| ep.set_ep_number(Some(count.try_into().unwrap())))
-            .collect();
+            .expect("this playlist should have at least one video");
 
-        let episodes = add_episode_length(episodes).await;
+        let episodes: Vec<Episode> = process_videos(episodes).await;
 
         Feed {
             image,
             title: match std::env::var("ENV") {
-                Ok(var) if var == "staging" => format!("[β] {}", pl.title).to_owned(),
+                Ok(var) if var == "staging" => format!("[β] {}", pl.title),
                 _ => pl.title,
             },
             author: pl.author,
@@ -304,6 +287,20 @@ impl Feed {
             episodes: Some(episodes),
         }
     }
+}
+
+async fn process_videos(vids: Vec<yt_feed_xml::Video>) -> Vec<Episode> {
+    let eps = vids.into_iter().map(Episode::from).collect();
+
+    let eps = add_episode_length(eps).await;
+
+    eps.into_iter()
+        .filter(|ep| ep.duration_secs > 65)
+        .filter(|ep| !ep.title.to_ascii_lowercase().contains("#shorts"))
+        .rev()
+        .enumerate()
+        .map(|(count, ep)| ep.set_ep_number(Some(count.try_into().unwrap())))
+        .collect()
 }
 
 impl From<Feed> for rss::Channel {
