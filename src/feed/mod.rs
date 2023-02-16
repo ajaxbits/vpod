@@ -45,7 +45,7 @@ pub async fn serve_feed(
 
             gen_rss(id, FeedType::Channel).await
         }
-        Some(playlist_id) => gen_rss(playlist_id.to_owned(), FeedType::Playlist).await
+        Some(playlist_id) => gen_rss(playlist_id.to_owned(), FeedType::Playlist).await,
     }
 }
 
