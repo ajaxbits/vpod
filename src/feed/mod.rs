@@ -25,7 +25,6 @@ pub async fn serve_feed(
     match query.get("list") {
         // Any link with the list query param is part of a playlist.
         // We should aggressively grab that playlist.
-        Some(playlist_id) => gen_rss(playlist_id.to_owned(), FeedType::Playlist).await,
         None => {
             let yt_url = match path_type {
                 YtPathType::Handle(handle) => format!("https://www.youtube.com/{handle}"),
@@ -46,11 +45,13 @@ pub async fn serve_feed(
 
             gen_rss(id, FeedType::Channel).await
         }
+        Some(playlist_id) => gen_rss(playlist_id.to_owned(), FeedType::Playlist).await
     }
 }
 
 async fn gen_rss(id: String, feed_type: FeedType) -> impl IntoResponse {
-    let path = format!("{feed_type}-{id}.xml");
+    let path = format!("{id}/{feed_type}-{id}.xml");
+    let path = std::path::Path::new(&path);
 
     let req = hyper::Request::builder()
         .body(axum::body::Body::empty())
@@ -59,7 +60,7 @@ async fn gen_rss(id: String, feed_type: FeedType) -> impl IntoResponse {
     let service =
         get_service(tower_http::services::ServeFile::new(&path)).handle_error(crate::handle_error);
 
-    let feed = match std::path::Path::new(&path).exists() {
+    let feed = match &path.exists() {
         true => {
             let new_feed = Feed::new(&id, feed_type);
             let old_file = std::fs::File::open(&path).unwrap();
@@ -75,6 +76,12 @@ async fn gen_rss(id: String, feed_type: FeedType) -> impl IntoResponse {
     };
 
     let channel = rss::Channel::from(feed.clone());
+
+    let prefix = path.parent().expect("could not parse parent path");
+    if prefix.exists() == false {
+        std::fs::create_dir_all(&prefix).expect("could not create directory for podcast...");
+    }
+
     let file = std::fs::File::create(&path).unwrap_or_else(|_| panic!("could ot create {id}.xml"));
     channel.write_to(file).unwrap();
 
