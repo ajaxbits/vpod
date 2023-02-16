@@ -1,4 +1,4 @@
-use std::path::PathBuf;
+use std::{env, path::PathBuf};
 
 use axum::{response::IntoResponse, routing::get_service};
 use tower::ServiceExt;
@@ -23,6 +23,39 @@ pub async fn return_audio(
         let _ytd = ytd_rs::YoutubeDL::new(&PathBuf::from(&path.parent().unwrap()), args, &url)
             .unwrap()
             .download();
+
+        let target_dir_size = env::var("TARGET_DIR_SIZE").unwrap_or("100000".to_string());
+        let target_dir_size: u64 = target_dir_size.parse::<u64>().unwrap();
+        let dir = &path.parent().unwrap();
+        let dir_size: u64 = fs_extra::dir::get_size(dir).unwrap() / 1000; //Kb
+        let difference: i64 = dir_size as i64 - target_dir_size as i64;
+        println!("{dir_size}");
+
+        if difference >= 0 {
+            let mut m4a_files: Vec<PathBuf> = std::fs::read_dir(dir)
+                .unwrap()
+                .filter_map(|entry| entry.ok())
+                .map(|entry| entry.path())
+                .filter(|path| path.extension().map_or(false, |ext| ext == "m4a"))
+                .collect();
+            m4a_files.sort_by(|a, b| {
+                a.metadata()
+                    .unwrap()
+                    .modified()
+                    .unwrap()
+                    .cmp(&b.metadata().unwrap().modified().unwrap())
+            });
+
+            let mut difference = difference;
+            println!("{difference}");
+
+            while difference >= 0 {
+                let oldest_file = &m4a_files[0];
+                difference = difference - ((oldest_file.metadata().unwrap().len() / 1000) as i64);
+                println!("{difference}");
+                // std::fs::remove_file(&m4a_files[0]).expect("could not delete file");
+            }
+        }
     }
 
     let req = hyper::Request::builder()
