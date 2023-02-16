@@ -22,35 +22,39 @@ pub async fn serve_feed(
     Path(YtPath { path_type, val }): Path<YtPath>,
     Query(query): Query<HashMap<String, String>>,
 ) -> impl IntoResponse {
-    match query.get("list") {
-        // Any link with the list query param is part of a playlist.
-        // We should aggressively grab that playlist.
-        None => {
-            let yt_url = match path_type {
-                YtPathType::Handle(handle) => format!("https://www.youtube.com/{handle}"),
-                YtPathType::Abbrev(type_string)
-                | YtPathType::Full(type_string)
-                | YtPathType::Video(type_string)
-                | YtPathType::Playlist(type_string)
-                | YtPathType::User(type_string) => format!(
-                    "https://www.youtube.com/{}/{}",
-                    type_string,
-                    val.expect("This path type must have a val")
-                ),
-            };
+    let yt_url = match path_type.clone() {
+        YtPathType::Handle(handle) => format!("https://www.youtube.com/{handle}"),
+        YtPathType::Abbrev(type_string)
+        | YtPathType::Full(type_string)
+        | YtPathType::Video(type_string)
+        | YtPathType::Playlist(type_string)
+        | YtPathType::User(type_string) => format!(
+            "https://www.youtube.com/{}/{}",
+            type_string,
+            val.expect("This path type must have a val")
+        ),
+    };
 
-            let id = utils::get_channel_id(&yt_url)
+    match path_type {
+        YtPathType::Playlist(_) => {
+            let pl_id = query
+                .get("list")
+                .expect("playlists need to have an id in the list query string")
+                .to_owned();
+            gen_rss(&pl_id, FeedType::Playlist).await
+        }
+        _ => {
+            let channel_id = utils::get_channel_id(&yt_url)
                 .await
                 .expect("could not get channel_id");
 
-            gen_rss(id, FeedType::Channel).await
+            gen_rss(&channel_id, FeedType::Channel).await
         }
-        Some(playlist_id) => gen_rss(playlist_id.to_owned(), FeedType::Playlist).await,
     }
 }
 
-async fn gen_rss(id: String, feed_type: FeedType) -> impl IntoResponse {
-    let path = format!("{feed_type}-{id}/{feed_type}-{id}.xml");
+async fn gen_rss(feed_id: &str, feed_type: FeedType) -> impl IntoResponse {
+    let path = format!("{feed_id}/{feed_type}-{feed_id}.xml");
     let path = std::path::Path::new(&path);
 
     let req = hyper::Request::builder()
@@ -62,7 +66,7 @@ async fn gen_rss(id: String, feed_type: FeedType) -> impl IntoResponse {
 
     let feed = match &path.exists() {
         true => {
-            let new_feed = Feed::new(&id, feed_type);
+            let new_feed = Feed::new(&feed_id, feed_type);
             let old_file = std::fs::File::open(&path).unwrap();
             let new_feed = new_feed.await;
 
@@ -72,7 +76,7 @@ async fn gen_rss(id: String, feed_type: FeedType) -> impl IntoResponse {
 
             update_feed(new_feed, old_feed).await
         }
-        false => Feed::new(&id, feed_type).await,
+        false => Feed::new(&feed_id, feed_type).await,
     };
 
     let channel = rss::Channel::from(feed.clone());
@@ -82,7 +86,8 @@ async fn gen_rss(id: String, feed_type: FeedType) -> impl IntoResponse {
         std::fs::create_dir_all(&prefix).expect("could not create directory for podcast...");
     }
 
-    let file = std::fs::File::create(&path).unwrap_or_else(|_| panic!("could ot create {id}.xml"));
+    let file =
+        std::fs::File::create(&path).unwrap_or_else(|_| panic!("could not create {feed_id}.xml"));
     channel.write_to(file).unwrap();
 
     let result = service.oneshot(req).await;
@@ -96,7 +101,7 @@ pub struct YtPath {
     val: Option<String>,
 }
 
-#[derive(Debug)]
+#[derive(Clone, Debug)]
 enum YtPathType {
     Handle(String),
     Abbrev(String),
@@ -252,12 +257,13 @@ impl Feed {
     async fn from_yt_channel(channel: yt_feed_xml::Channel) -> Self {
         let channel_image = utils::get_feed_image(&channel.url).await.unwrap();
         let channel_description = utils::get_feed_description(&channel.url).await.unwrap();
+        let channel_id = channel.id;
 
         let episodes: Vec<yt_feed_xml::Video> = channel
             .videos
             .expect("this channel should have at least one video");
 
-        let episodes: Vec<Episode> = process_videos(episodes).await;
+        let episodes: Vec<Episode> = process_videos(episodes, &channel_id).await;
 
         Feed {
             image: channel_image,
@@ -275,12 +281,13 @@ impl Feed {
     async fn from_yt_playlist(pl: yt_feed_xml::Playlist) -> Self {
         let image = utils::get_feed_image(&pl.url).await.unwrap();
         let description = utils::get_feed_description(&pl.url).await.unwrap();
+        let pl_id = pl.id;
 
         let episodes: Vec<yt_feed_xml::Video> = pl
             .videos
             .expect("this playlist should have at least one video");
 
-        let episodes: Vec<Episode> = process_videos(episodes).await;
+        let episodes: Vec<Episode> = process_videos(episodes, &pl_id).await;
 
         Feed {
             image,
@@ -296,8 +303,11 @@ impl Feed {
     }
 }
 
-async fn process_videos(vids: Vec<yt_feed_xml::Video>) -> Vec<Episode> {
-    let eps = vids.into_iter().map(Episode::from).collect();
+async fn process_videos(vids: Vec<yt_feed_xml::Video>, feed_id: &str) -> Vec<Episode> {
+    let eps = vids
+        .into_iter()
+        .map(|v| Episode::from_xml_video(v, feed_id))
+        .collect();
 
     let eps = add_episode_length(eps).await;
 

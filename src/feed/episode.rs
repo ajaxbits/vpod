@@ -59,13 +59,13 @@ impl Episode {
     }
 }
 
-impl From<yt_feed_xml::Video> for Episode {
-    fn from(video: yt_feed_xml::Video) -> Self {
+impl Episode {
+    pub fn from_xml_video(video: yt_feed_xml::Video, feed_id: &str) -> Self {
         Episode {
             id: rss::GuidBuilder::default().value(&video.id).build(),
             url: format!(
-                "{}/ep/{}",
-                env::var("NGROK_URL").unwrap_or_else(|err| {
+                "{server_url}/ep/{feed_id}/{ep_id}",
+                server_url = env::var("NGROK_URL").unwrap_or_else(|err| {
                     if err == env::VarError::NotPresent {
                         let app_name =
                             env::var("FLY_APP_NAME").expect("could not find $FLY_APP_NAME");
@@ -74,7 +74,8 @@ impl From<yt_feed_xml::Video> for Episode {
                         panic!("could not find $NGROK_URL or $FLY_APP_NAME in env");
                     }
                 }),
-                &video.id
+                feed_id = feed_id,
+                ep_id = &video.id
             ),
             episode: None,
             title: video.title,
