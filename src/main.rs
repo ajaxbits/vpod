@@ -10,7 +10,7 @@ async fn main() -> color_eyre::Result<()> {
 
     let app = Router::new()
         .route("/:path_type/*val", get(feed::serve_feed))
-        .route("/ep/:id", get(audio::return_audio));
+        .route("/ep/:feed_id/:ep_id", get(audio::return_audio));
 
     let addr = SocketAddr::from_str("[::]:8080")?;
     axum::Server::bind(&addr)

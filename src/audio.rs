@@ -6,11 +6,12 @@ use ytd_rs::Arg;
 
 // #[axum::debug_handler]
 pub async fn return_audio(
-    axum::extract::Path(id): axum::extract::Path<String>,
+    axum::extract::Path((feed_id, ep_id)): axum::extract::Path<(String, String)>,
 ) -> impl IntoResponse {
-    let url = format!("https://www.youtube.com/watch?v={id}");
-    let path = format!("{id}.m4a");
-    if let false = std::path::Path::new(&path).exists() {
+    let url = format!("https://www.youtube.com/watch?v={ep_id}");
+    let path = format!("{feed_id}/{ep_id}.m4a");
+    let path = std::path::Path::new(&path);
+    if let false = &path.exists() {
         let args = vec![
             Arg::new("--quiet"),
             Arg::new_with_arg("--format", "bestaudio[protocol^=http][abr<100][ext=m4a]"),
@@ -19,13 +20,13 @@ pub async fn return_audio(
             Arg::new_with_arg("--sponsorblock-mark", "sponsor,selfpromo"),
             Arg::new_with_arg("--output", "%(id)s.m4a"),
         ];
-        let _ytd = ytd_rs::YoutubeDL::new(&PathBuf::from("./."), args, &url)
+        let _ytd = ytd_rs::YoutubeDL::new(&PathBuf::from(&path.parent().unwrap()), args, &url)
             .unwrap()
             .download();
     }
 
     let req = hyper::Request::builder()
-        .uri(id)
+        .uri(ep_id)
         .body(axum::body::Body::empty())
         .unwrap();
 
