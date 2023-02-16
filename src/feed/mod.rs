@@ -50,7 +50,7 @@ pub async fn serve_feed(
 }
 
 async fn gen_rss(id: String, feed_type: FeedType) -> impl IntoResponse {
-    let path = format!("{id}/{feed_type}-{id}.xml");
+    let path = format!("{feed_type}-{id}/{feed_type}-{id}.xml");
     let path = std::path::Path::new(&path);
 
     let req = hyper::Request::builder()
