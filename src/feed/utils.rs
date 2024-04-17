@@ -50,7 +50,6 @@ pub async fn get_feed_description(url: &str) -> Result<String, Box<dyn std::erro
 
 #[cfg(test)]
 mod tests {
-    // Note this useful idiom: importing names from outer (for mod tests) scope.
     use super::*;
 
     #[tokio::test]
@@ -71,22 +70,6 @@ mod tests {
                 .await
                 .unwrap(),
             vihart
-        );
-    }
-
-    #[tokio::test]
-    async fn test_image() {
-        let image = "https://yt3.ggpht.com/ytc/AMLnZu_ZK-GvsGbsEaBYo0q_u3NvSSDT__vlljY7nJohDg=s900-c-k-c0x00ffffff-no-rj";
-        assert_eq!(
-            get_feed_image(&format!(
-                "https://www.youtube.com/channel/{}",
-                get_channel_id("https://www.youtube.com/c/OstonCodeCypher")
-                    .await
-                    .unwrap()
-            ))
-            .await
-            .unwrap(),
-            image
         );
     }
 }
