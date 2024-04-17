@@ -12,7 +12,7 @@ async fn main() -> color_eyre::Result<()> {
         .route("/:path_type/*val", get(feed::serve_feed))
         .route("/ep/:feed_id/:ep_id", get(audio::return_audio));
 
-    let addr = SocketAddr::from_str("[::]:8080")?;
+    let addr = SocketAddr::from_str("[::]:8888")?;
     axum::Server::bind(&addr)
         .serve(app.into_make_service())
         .await?;
