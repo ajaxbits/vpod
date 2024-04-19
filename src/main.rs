@@ -9,6 +9,7 @@ async fn main() -> color_eyre::Result<()> {
     color_eyre::install()?;
 
     let app = Router::new()
+        .route("/:path_type", get(feed::serve_feed))
         .route("/:path_type/*val", get(feed::serve_feed))
         .route("/ep/:feed_id/:ep_id", get(audio::return_audio));
 
