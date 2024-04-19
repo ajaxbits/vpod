@@ -65,15 +65,7 @@ impl Episode {
             id: rss::GuidBuilder::default().value(&video.id).build(),
             url: format!(
                 "{server_url}/ep/{feed_id}/{ep_id}",
-                server_url = env::var("NGROK_URL").unwrap_or_else(|err| {
-                    if err == env::VarError::NotPresent {
-                        let app_name =
-                            env::var("FLY_APP_NAME").expect("could not find $FLY_APP_NAME");
-                        format!("https://{app_name}.fly.dev")
-                    } else {
-                        panic!("could not find $NGROK_URL or $FLY_APP_NAME in env");
-                    }
-                }),
+                server_url = env::var("EPISODE_HOST").unwrap(),
                 feed_id = feed_id,
                 ep_id = &video.id
             ),

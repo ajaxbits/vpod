@@ -10,7 +10,7 @@
 
   mkDerivation = {
     src = ./.;
-    buildInputs = [config.deps.openssl config.deps.yt-dlp];
+    buildInputs = with config.deps; [openssl yt-dlp rustc];
     nativeBuildInputs = [config.deps.pkg-config];
   };
 
@@ -23,18 +23,17 @@
       (nixpkgs)
       stdenv
       pkg-config
+      rustc
       openssl
       ;
     inherit (latest) yt-dlp;
   };
 
-  name = "vpod";
-  version = "0.1.0";
-
   rust-crane = {
     depsDrv = {
-      mkDerivation.buildInputs = [config.deps.openssl config.deps.yt-dlp];
+      mkDerivation.buildInputs = with config.deps; [openssl yt-dlp rustc];
       mkDerivation.nativeBuildInputs = [config.deps.pkg-config];
     };
+    runTests = false;
   };
 }

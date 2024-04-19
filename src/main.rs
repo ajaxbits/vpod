@@ -21,7 +21,8 @@ async fn main() -> color_eyre::Result<()> {
     Ok(())
 }
 
-async fn handle_error(_err: std::io::Error) -> impl IntoResponse {
+async fn handle_error(err: std::io::Error) -> impl IntoResponse {
+    println!("{:#?}", err);
     (
         hyper::StatusCode::INTERNAL_SERVER_ERROR,
         "Something went wrong...",
