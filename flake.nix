@@ -40,12 +40,13 @@
       };
 
       oci-image = let
-        inherit (nixpkgs.legacyPackages.${system}) cacert dockerTools;
+        inherit (nixpkgs.legacyPackages.${system}) dockerTools;
       in
         dockerTools.buildLayeredImage {
           inherit name;
           tag = version;
-          contents = [cacert];
+          maxLayers = 128;
+          contents = [dockerTools.caCertificates];
           config.Cmd = [
             "${self.packages.${system}.default}/bin/vpod"
           ];
