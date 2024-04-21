@@ -2,6 +2,7 @@ use axum::{response::IntoResponse, routing::get, Router};
 use std::{net::SocketAddr, str::FromStr};
 
 mod audio;
+mod cli;
 mod feed;
 
 #[tokio::main]

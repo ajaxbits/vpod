@@ -1,4 +1,4 @@
-set positional-arguments
+set positional-arguments := true
 
 @deploy version:
     nix build .#oci-image
