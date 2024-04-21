@@ -2,16 +2,21 @@
 // https://hoverbear.org/blog/instrumenting-axum-projects/
 
 use clap::Parser;
-use std::net::{IpAddr, Ipv6Addr, SocketAddr};
+use std::net::{IpAddr, Ipv6Addr};
+use url::Url;
 
-const DEFAULT_BIND_ADDR: SocketAddr =
-    SocketAddr::new(IpAddr::V6(Ipv6Addr::new(0, 0, 0, 0, 0, 0, 0, 0)), 8080);
+const DEFAULT_HOST: IpAddr = IpAddr::V6(Ipv6Addr::new(0, 0, 0, 0, 0, 0, 0, 0));
+const DEFAULT_PORT: u16 = 8080;
 
 #[derive(Parser)]
+#[command(version, about, long_about = None)]
 pub(crate) struct Cli {
-    #[clap(long, env = "BIND", default_value_t = DEFAULT_BIND_ADDR)]
-    pub(crate) bind: SocketAddr,
+    #[clap(long, env = "HOST", default_value_t = DEFAULT_HOST)]
+    pub(crate) host: IpAddr,
 
-    #[clap(long, env = "EPISODE_URL", default_value_t = DEFAULT_BIND_ADDR)]
-    pub(crate) episode_url: SocketAddr,
+    #[clap(long, env = "PORT", default_value_t = DEFAULT_PORT)]
+    pub(crate) port: u16,
+
+    #[clap(long, env = "EPISODE_URL")]
+    pub(crate) episode_url: Url,
 }
