@@ -1,10 +1,13 @@
-use std::{collections::BTreeMap, env};
+use std::collections::BTreeMap;
 
 use chrono::Duration;
 use rss::extension::{
     itunes::{ITunesItemExtension, ITunesItemExtensionBuilder},
     ExtensionBuilder,
 };
+
+use crate::cli::Cli;
+use clap::Parser;
 
 #[derive(Debug, Clone, PartialEq)]
 pub struct Episode {
@@ -61,11 +64,12 @@ impl Episode {
 
 impl Episode {
     pub fn from_xml_video(video: yt_feed_xml::Video, feed_id: &str) -> Self {
+        let cli = Cli::parse();
         Episode {
             id: rss::GuidBuilder::default().value(&video.id).build(),
             url: format!(
-                "{server_url}/ep/{feed_id}/{ep_id}",
-                server_url = env::var("EPISODE_HOST").unwrap(),
+                "{episode_host_url}ep/{feed_id}/{ep_id}",
+                episode_host_url = cli.episode_url,
                 feed_id = feed_id,
                 ep_id = &video.id
             ),

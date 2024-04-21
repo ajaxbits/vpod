@@ -19,6 +19,7 @@ pub async fn return_audio(
             // TODO: Implement an enum allowing users to safely
             // add their own options to this list
             Arg::new("--quiet"),
+            Arg::new_with_arg("--concurrent-fragments", "8"),
             Arg::new_with_arg("--format", "bestaudio[protocol^=http][abr<100][ext=m4a]"),
             Arg::new("--embed-metadata"),
             Arg::new("--embed-thumbnail"),
