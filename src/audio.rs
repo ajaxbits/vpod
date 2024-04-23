@@ -4,13 +4,16 @@ use std::{
 };
 
 use axum::{response::IntoResponse, routing::get_service};
+use color_eyre::eyre::eyre;
 use tower::ServiceExt;
 use ytd_rs::Arg;
 
 // #[axum::debug_handler]
+#[tracing::instrument]
 pub async fn return_audio(
     axum::extract::Path((feed_id, ep_id)): axum::extract::Path<(String, String)>,
-) -> impl IntoResponse {
+) -> crate::error::Result<impl IntoResponse> {
+    tracing::info!("serving episode");
     let url = format!("https://www.youtube.com/watch?v={ep_id}");
     let path = format!("{feed_id}/{ep_id}.m4a");
     let path = std::path::Path::new(&path);
@@ -34,24 +37,21 @@ pub async fn return_audio(
         let target_dir_size: u64 = target_dir_size.parse::<u64>().unwrap();
         let dir = path.parent().unwrap();
 
-        // Call to the new function
-        match reduce_dir_size(dir, target_dir_size) {
-            Err(e) => eprintln!("Failed to reduce directory size: {:?}", e),
-            _ => (),
+        if let Err(e) = reduce_dir_size(dir, target_dir_size) {
+             return Err(eyre!("Failed to reduce directory size: {:?}", e))?
         }
     }
 
     let req = hyper::Request::builder()
         .uri(ep_id)
-        .body(axum::body::Body::empty())
-        .unwrap();
+        .body(axum::body::Body::empty())?;
 
     let service =
         get_service(tower_http::services::ServeFile::new(path)).handle_error(crate::handle_error);
 
     let result = service.oneshot(req).await;
 
-    result
+    Ok(result)
 }
 
 fn reduce_dir_size(dir: &Path, target_dir_size: u64) -> std::io::Result<()> {
