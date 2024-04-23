@@ -3,6 +3,7 @@ use std::net::SocketAddr;
 
 mod audio;
 mod cli;
+mod error;
 mod feed;
 
 use clap::Parser;
