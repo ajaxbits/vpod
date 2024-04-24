@@ -38,7 +38,7 @@ pub async fn return_audio(
         let dir = path.parent().unwrap();
 
         if let Err(e) = reduce_dir_size(dir, target_dir_size) {
-             return Err(eyre!("Failed to reduce directory size: {:?}", e))?
+            return Err(eyre!("Failed to reduce directory size: {:?}", e))?;
         }
     }
 

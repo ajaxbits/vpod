@@ -5,6 +5,9 @@ use clap::Parser;
 use std::net::{IpAddr, Ipv6Addr};
 use url::Url;
 
+mod instrumentation;
+mod logger;
+
 const DEFAULT_HOST: IpAddr = IpAddr::V6(Ipv6Addr::new(0, 0, 0, 0, 0, 0, 0, 0));
 const DEFAULT_PORT: u16 = 8080;
 
