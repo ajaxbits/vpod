@@ -34,7 +34,7 @@
       system = "x86_64-linux";
 
       name = "vpod";
-      version = "0.0.2";
+      version = "0.0.3";
 
       eachSystem = f: nixpkgs.lib.genAttrs (import systems) (system: f nixpkgs.legacyPackages.${system});
       treefmtEval = eachSystem (pkgs: treefmt-nix.lib.evalModule pkgs ./treefmt.nix);
