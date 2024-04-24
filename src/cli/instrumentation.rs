@@ -31,8 +31,8 @@ pub(crate) struct Instrumentation {
     pub(crate) logger: Logger,
 
     #[clap(
-        long = "log-filters",
-        env = "LOG_FILTERS",
+        long = "log-directive",
+        env = "LOG_DIRECTIVES",
         value_delimiter = ',',
         num_args = 0..,
         global = true

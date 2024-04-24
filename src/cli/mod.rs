@@ -22,4 +22,7 @@ pub(crate) struct Cli {
 
     #[clap(long, env = "EPISODE_URL")]
     pub(crate) episode_url: Url,
+
+    #[clap(flatten)]
+    pub(crate) instrumentation: instrumentation::Instrumentation,
 }

@@ -5,6 +5,7 @@ processes = []
 
 [env]
 EPISODE_URL = "https://vpod.fly.dev"
+VERBOSITY = 2
 
 [build]
 image = "registry.fly.io/vpod:0.1.0"

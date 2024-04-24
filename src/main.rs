@@ -1,7 +1,8 @@
-use axum::{response::IntoResponse, routing::get, Router};
+use axum::{routing::get, Router};
 use std::io::IsTerminal;
 use std::net::SocketAddr;
 use std::process::ExitCode;
+use tower_http::trace::TraceLayer;
 
 mod audio;
 mod cli;
@@ -24,9 +25,12 @@ async fn main() -> Result<ExitCode> {
         .install()?;
 
     let cli = Cli::parse();
-    let trace_layer = tower_http::trace::TraceLayer::new_for_http().on_request(
-        |_req: &hyper::Request<hyper::Body>, _span: &tracing::Span| tracing::trace!("got request"),
-    );
+    cli.instrumentation.setup()?;
+
+    let trace_layer = TraceLayer::new_for_http()
+        .make_span_with(trace_layer::trace_layer_make_span_with)
+        .on_request(trace_layer::trace_layer_on_request)
+        .on_response(trace_layer::trace_layer_on_response);
 
     let app = Router::new()
         .route("/:path_type", get(feed::serve_feed))
@@ -36,17 +40,12 @@ async fn main() -> Result<ExitCode> {
 
     tracing::info!("Listening on {}:{}", cli.host, cli.port);
     let addr = SocketAddr::new(cli.host, cli.port);
-    axum::Server::bind(&addr)
-        .serve(app.into_make_service())
-        .await?;
+    let listener = tokio::net::TcpListener::bind(addr).await?;
+    axum::serve(
+        listener,
+        app.into_make_service_with_connect_info::<SocketAddr>(),
+    )
+    .await?;
 
     Ok(ExitCode::SUCCESS)
-}
-
-async fn handle_error(err: std::io::Error) -> impl IntoResponse {
-    println!("{:#?}", err);
-    (
-        hyper::StatusCode::INTERNAL_SERVER_ERROR,
-        "Something went wrong...",
-    )
 }
