@@ -1,9 +1,10 @@
-use axum::{response::IntoResponse, routing::get, Router};
+use axum::{routing::get, Router};
 use std::io::IsTerminal;
 use std::net::SocketAddr;
 use std::process::ExitCode;
 use tower_http::trace::TraceLayer;
 
+mod audio;
 mod cli;
 mod error;
 mod feed;
@@ -33,9 +34,9 @@ async fn main() -> Result<ExitCode> {
         .on_response(trace_layer::trace_layer_on_response);
 
     let app = Router::new()
-        // .route("/", get(routes::get_home))
         .route("/:path_type", get(feed::serve_feed))
         .route("/:path_type/*val", get(feed::serve_feed))
+        .route("/ep/:feed_id/:ep_id", get(audio::return_audio))
         .layer(trace_layer);
 
     tracing::info!("Listening on {}:{}", cli.host, cli.port);
@@ -48,11 +49,4 @@ async fn main() -> Result<ExitCode> {
     .await?;
 
     Ok(ExitCode::SUCCESS)
-}
-
-async fn handle_error() -> (axum::http::StatusCode, &'static str) {
-    (
-        axum::http::StatusCode::INTERNAL_SERVER_ERROR,
-        "Something went wrong...",
-    )
 }
