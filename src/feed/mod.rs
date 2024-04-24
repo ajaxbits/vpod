@@ -18,9 +18,13 @@ mod episode;
 mod utils;
 use episode::Episode;
 
+
+
+#[axum::debug_handler]
 pub async fn serve_feed(
     Path(YtPath { path_type, val }): Path<YtPath>,
     Query(query): Query<HashMap<String, String>>,
+    _request: axum::extract::Request,
 ) -> impl IntoResponse {
     let yt_url = match path_type.clone() {
         YtPathType::Handle(handle) => format!("https://www.youtube.com/{handle}"),
@@ -41,28 +45,24 @@ pub async fn serve_feed(
                 .get("list")
                 .expect("playlists need to have an id in the list query string")
                 .to_owned();
-            gen_rss(&pl_id, FeedType::Playlist).await
+            gen_rss(&pl_id, FeedType::Playlist, _request).await
         }
         _ => {
             let channel_id = utils::get_channel_id(&yt_url)
                 .await
                 .expect("could not get channel_id");
 
-            gen_rss(&channel_id, FeedType::Channel).await
+            gen_rss(&channel_id, FeedType::Channel, _request).await
         }
     }
 }
 
-async fn gen_rss(feed_id: &str, feed_type: FeedType) -> impl IntoResponse {
+async fn gen_rss(feed_id: &str, feed_type: FeedType, request: axum::extract::Request) -> impl IntoResponse {
     let path = format!("{feed_id}/{feed_type}-{feed_id}.xml");
     let path = std::path::Path::new(&path);
 
-    let req = hyper::Request::builder()
-        .body(axum::body::Body::empty())
-        .unwrap();
-
     let service =
-        get_service(tower_http::services::ServeFile::new(&path)).handle_error(crate::handle_error);
+        tower_http::services::ServeFile::new(&path);
 
     let feed = match &path.exists() {
         true => {
@@ -90,7 +90,7 @@ async fn gen_rss(feed_id: &str, feed_type: FeedType) -> impl IntoResponse {
         std::fs::File::create(&path).unwrap_or_else(|_| panic!("could not create {feed_id}.xml"));
     channel.write_to(file).unwrap();
 
-    let result = service.oneshot(req).await;
+    let result = service.oneshot(request).await;
 
     result
 }
