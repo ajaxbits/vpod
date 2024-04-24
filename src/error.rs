@@ -46,13 +46,20 @@ pub(crate) enum VpodError {
     ChannelNotFound,
     #[error("playlist ID not found in url")]
     PlaylistIdNotFound,
+    #[error("error running youtube-dlp")]
+    YoutubeDLError,
 }
 
 impl VpodError {
     fn response(&self) -> Response {
         match self {
             Self::ChannelNotFound => (StatusCode::NOT_FOUND, "Channel not found").into_response(),
-            Self::PlaylistIdNotFound => (StatusCode::NOT_FOUND, "Channel not found").into_response(),
+            Self::PlaylistIdNotFound => {
+                (StatusCode::NOT_FOUND, "Channel not found").into_response()
+            }
+            Self::YoutubeDLError => {
+                (StatusCode::INTERNAL_SERVER_ERROR, "Error getting audio").into_response()
+            }
         }
     }
 }

@@ -8,7 +8,6 @@ mod audio;
 mod cli;
 mod error;
 mod feed;
-mod routes;
 mod trace_layer;
 
 use crate::cli::Cli;

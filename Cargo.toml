@@ -1,14 +1,12 @@
 [package]
 name = "vpod"
-version = "0.1.1"
+version = "0.0.2"
 edition = "2021"
 license = "Unlicense"
 
 [profile.release]
 strip = true
 lto = true
-
-# See more keys and their definitions at https://doc.rust-lang.org/cargo/reference/manifest.html
 
 [dependencies]
 axum = { version = "0.7.5", features = ["tokio", "query", "macros"] }
@@ -40,10 +38,11 @@ tokio = { version = "1.21.2", features = ["full"] }
 tokio-util = "0.7.4"
 tower = { version = "0.4.13", features = ["util"] }
 tower-http = { version = "0.5", features = ["fs", "trace"] }
-tracing = "0.1.40"
+tracing = { version = "0.1.40", features = ["attributes"] }
 tracing-error = "0.2.0"
 tracing-subscriber = { version = "0.3.18", features = ["env-filter", "json"] }
 url = "2.5.0"
+valuable = { version = "0.1.0", features = ["derive"] }
 youtube_dl = { version = "0.7.0", default-features = false, features = [
   "yt-dlp",
   "tokio",

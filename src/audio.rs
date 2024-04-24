@@ -3,19 +3,21 @@ use std::{
     path::{Path, PathBuf},
 };
 
+use crate::error::{Result, VpodError};
 use axum::response::IntoResponse;
 use tower::ServiceExt;
 use ytd_rs::Arg;
 
-// #[axum::debug_handler]
+#[tracing::instrument(fields(feed_id=feed_id, episode_id=ep_id))]
 pub async fn return_audio(
     axum::extract::Path((feed_id, ep_id)): axum::extract::Path<(String, String)>,
-    _request: axum::extract::Request,
-) -> impl IntoResponse {
+    request: axum::extract::Request,
+) -> Result<impl IntoResponse> {
     let url = format!("https://www.youtube.com/watch?v={ep_id}");
     let path = format!("{feed_id}/{ep_id}.m4a");
     let path = std::path::Path::new(&path);
     if !path.exists() {
+        // eprintln!("got here");
         let args = vec![
             // TODO: Implement an enum allowing users to safely
             // add their own options to this list
@@ -27,8 +29,10 @@ pub async fn return_audio(
             Arg::new_with_arg("--sponsorblock-mark", "sponsor,selfpromo"),
             Arg::new_with_arg("--output", "%(id)s.m4a"),
         ];
-        let _ytd = ytd_rs::YoutubeDL::new(&PathBuf::from(&path.parent().unwrap()), args, &url)
-            .unwrap()
+        let channel_dir = &PathBuf::from(&path.parent().unwrap());
+        // eprintln!("{channel_dir:?}");
+        let _ytd = ytd_rs::YoutubeDL::new(channel_dir, args, &url)
+            .map_err(|_| VpodError::YoutubeDLError)?
             .download();
 
         let target_dir_size = env::var("TARGET_DIR_SIZE").unwrap_or("100000".to_string());
@@ -44,12 +48,13 @@ pub async fn return_audio(
 
     let service = tower_http::services::ServeFile::new(path);
 
-    let result = service.oneshot(_request).await;
+    let result = service.oneshot(request).await;
 
-    result
+    Ok(result)
 }
 
-fn reduce_dir_size(dir: &Path, target_dir_size: u64) -> std::io::Result<()> {
+#[tracing::instrument]
+fn reduce_dir_size(dir: &Path, target_dir_size: u64) -> Result<()> {
     let dir_size: u64 = fs_extra::dir::get_size(dir)
         .map_err(|e| std::io::Error::new(std::io::ErrorKind::Other, e.to_string()))?
         / 1000; //Kb

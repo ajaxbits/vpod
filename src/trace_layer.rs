@@ -12,6 +12,9 @@ pub(crate) fn trace_layer_make_span_with(req: &Request<Body>) -> Span {
             .unwrap_or_else(|| tracing::field::display("<unknown>".to_string())),
         status = tracing::field::Empty,
         latency = tracing::field::Empty,
+        feed_id = tracing::field::Empty,
+        feed_type = tracing::field::Empty,
+        episode_id = tracing::field::Empty,
     )
 }
 

@@ -18,9 +18,8 @@ mod utils;
 use episode::Episode;
 
 use crate::error::{Result, VpodError};
-use color_eyre::eyre::eyre;
 
-#[axum::debug_handler]
+#[tracing::instrument]
 pub async fn serve_feed(
     Path(YtPath { path_type, val }): Path<YtPath>,
     Query(query): Query<HashMap<String, String>>,
@@ -45,15 +44,18 @@ pub async fn serve_feed(
                 .get("list")
                 .ok_or(VpodError::PlaylistIdNotFound)?
                 .to_owned();
-            Ok(gen_rss(&pl_id, FeedType::Playlist, _request).await)
+            Ok(gen_rss(&pl_id, FeedType::Playlist, _request).await?)
         }
         _ => {
-            let channel_id = utils::get_channel_id(&yt_url).await.map_err(|_| VpodError::ChannelNotFound)?;
-            Ok(gen_rss(&channel_id, FeedType::Channel, _request).await)
+            let channel_id = utils::get_channel_id(&yt_url)
+                .await
+                .map_err(|_| VpodError::ChannelNotFound)?;
+            Ok(gen_rss(&channel_id, FeedType::Channel, _request).await?)
         }
     }
 }
 
+#[tracing::instrument(fields(feed_id=feed_id, feed_type=format!("{feed_type}")))]
 async fn gen_rss(
     feed_id: &str,
     feed_type: FeedType,
@@ -148,6 +150,7 @@ struct Feed {
     episodes: Option<Vec<Episode>>,
 }
 
+#[tracing::instrument]
 async fn add_episode_length(eps: Vec<Episode>) -> Vec<Episode> {
     let https = hyper_tls::HttpsConnector::new();
     let client = hyper::Client::builder().build::<_, hyper::Body>(https);
@@ -191,6 +194,7 @@ async fn add_episode_length(eps: Vec<Episode>) -> Vec<Episode> {
         .collect()
 }
 
+#[tracing::instrument]
 async fn update_feed(new_feed: Feed, old_feed: Feed) -> Feed {
     let old_eps = old_feed.episodes.unwrap();
     let mut new_eps = new_feed.episodes.as_ref().unwrap().to_owned();
@@ -226,6 +230,7 @@ async fn update_feed(new_feed: Feed, old_feed: Feed) -> Feed {
     }
 }
 
+#[derive(Debug)]
 enum FeedType {
     Channel,
     Playlist,
