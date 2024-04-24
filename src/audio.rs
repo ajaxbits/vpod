@@ -3,7 +3,7 @@ use std::{
     path::{Path, PathBuf},
 };
 
-use axum::{response::IntoResponse, routing::get_service};
+use axum::response::IntoResponse;
 use tower::ServiceExt;
 use ytd_rs::Arg;
 

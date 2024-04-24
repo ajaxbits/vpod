@@ -6,7 +6,6 @@ use std::{
 use axum::{
     extract::{Path, Query},
     response::IntoResponse,
-    routing::get_service,
 };
 use futures::StreamExt;
 use hyper::body;
@@ -18,14 +17,15 @@ mod episode;
 mod utils;
 use episode::Episode;
 
-
+use crate::error::{Result, VpodError};
+use color_eyre::eyre::eyre;
 
 #[axum::debug_handler]
 pub async fn serve_feed(
     Path(YtPath { path_type, val }): Path<YtPath>,
     Query(query): Query<HashMap<String, String>>,
     _request: axum::extract::Request,
-) -> impl IntoResponse {
+) -> Result<impl IntoResponse> {
     let yt_url = match path_type.clone() {
         YtPathType::Handle(handle) => format!("https://www.youtube.com/{handle}"),
         YtPathType::Abbrev(type_string)
@@ -43,26 +43,26 @@ pub async fn serve_feed(
         YtPathType::Playlist(_) => {
             let pl_id = query
                 .get("list")
-                .expect("playlists need to have an id in the list query string")
+                .ok_or(VpodError::PlaylistIdNotFound)?
                 .to_owned();
-            gen_rss(&pl_id, FeedType::Playlist, _request).await
+            Ok(gen_rss(&pl_id, FeedType::Playlist, _request).await)
         }
         _ => {
-            let channel_id = utils::get_channel_id(&yt_url)
-                .await
-                .expect("could not get channel_id");
-
-            gen_rss(&channel_id, FeedType::Channel, _request).await
+            let channel_id = utils::get_channel_id(&yt_url).await.map_err(|_| VpodError::ChannelNotFound)?;
+            Ok(gen_rss(&channel_id, FeedType::Channel, _request).await)
         }
     }
 }
 
-async fn gen_rss(feed_id: &str, feed_type: FeedType, request: axum::extract::Request) -> impl IntoResponse {
+async fn gen_rss(
+    feed_id: &str,
+    feed_type: FeedType,
+    request: axum::extract::Request,
+) -> Result<impl IntoResponse> {
     let path = format!("{feed_id}/{feed_type}-{feed_id}.xml");
     let path = std::path::Path::new(&path);
 
-    let service =
-        tower_http::services::ServeFile::new(&path);
+    let service = tower_http::services::ServeFile::new(&path);
 
     let feed = match &path.exists() {
         true => {
@@ -92,7 +92,7 @@ async fn gen_rss(feed_id: &str, feed_type: FeedType, request: axum::extract::Req
 
     let result = service.oneshot(request).await;
 
-    result
+    Ok(result)
 }
 
 #[derive(Deserialize)]
@@ -167,7 +167,8 @@ async fn add_episode_length(eps: Vec<Episode>) -> Vec<Episode> {
             body::to_bytes(res).await.expect("err reading body!")
         })
         .then(|body| async {
-            tokio::time::sleep(tokio::time::Duration::from_millis(5)).await;
+            // TODO: I don't know why this is here?
+            // tokio::time::sleep(tokio::time::Duration::from_millis(5)).await;
             let body = String::from_utf8(body.into_iter().collect()).unwrap();
             let length = body.find("lengthSeconds");
             match length {

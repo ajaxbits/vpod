@@ -1,26 +1,33 @@
+use crate::error::Result;
+use color_eyre::eyre::eyre;
 use scraper::{Html, Selector};
 
-async fn get_html(url: &str) -> Result<Html, Box<dyn std::error::Error>> {
+async fn get_html(url: &str) -> Result<Html> {
     let resp = reqwest::get(url).await?;
     let text = resp.text().await?;
     Ok(Html::parse_document(&text))
 }
 
-pub async fn get_channel_id(url: &str) -> Result<String, Box<dyn std::error::Error>> {
-    let document = get_html(url).await?;
+pub async fn get_channel_id(url: &str) -> Result<String> {
+    let document = get_html(url).await.unwrap();
     let selector = Selector::parse(r#"body > link[rel="canonical"]"#).unwrap();
     let link = document
         .select(&selector)
         .next()
         .map(|el| el.value().attr("href").unwrap())
-        .expect("could not find canonical link for channel");
+        .ok_or(eyre!("Could not find canonical link"))?;
 
-    let id = link.split('/').rev().next().unwrap().to_string();
+    let id = link
+        .split('/')
+        .rev()
+        .next()
+        .ok_or(eyre!("Canonical link had no href"))?
+        .to_string();
 
     Ok(id)
 }
 
-pub async fn get_feed_image(url: &str) -> Result<String, Box<dyn std::error::Error>> {
+pub async fn get_feed_image(url: &str) -> Result<String> {
     let document = get_html(url).await?;
     let selector = Selector::parse(r#"body > meta[property="og:image"]"#).unwrap();
     let link = document
@@ -32,7 +39,7 @@ pub async fn get_feed_image(url: &str) -> Result<String, Box<dyn std::error::Err
     Ok(link.to_string())
 }
 
-pub async fn get_feed_description(url: &str) -> Result<String, Box<dyn std::error::Error>> {
+pub async fn get_feed_description(url: &str) -> Result<String> {
     let document = get_html(url).await?;
     let selector = Selector::parse(r#"body > meta[property="og:description"]"#).unwrap();
     let description = document

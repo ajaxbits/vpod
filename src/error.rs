@@ -42,14 +42,17 @@ impl IntoResponse for Report {
 
 #[derive(thiserror::Error, Debug)]
 pub(crate) enum VpodError {
-    #[error("A spooky thing happened")]
-    Spooky,
+    #[error("could not find channel ID")]
+    ChannelNotFound,
+    #[error("playlist ID not found in url")]
+    PlaylistIdNotFound,
 }
 
 impl VpodError {
     fn response(&self) -> Response {
         match self {
-            Self::Spooky => (StatusCode::IM_A_TEAPOT, "This is a test error").into_response(),
+            Self::ChannelNotFound => (StatusCode::NOT_FOUND, "Channel not found").into_response(),
+            Self::PlaylistIdNotFound => (StatusCode::NOT_FOUND, "Channel not found").into_response(),
         }
     }
 }
