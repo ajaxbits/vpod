@@ -35,7 +35,7 @@ async fn main() -> Result<ExitCode> {
     let app = Router::new()
         .route("/:path_type", get(feed::serve_feed))
         .route("/:path_type/*val", get(feed::serve_feed))
-        .route("/ep/:feed_id/:ep_id", get(audio::return_audio))
+        .route("/ep/:feed_id/:file_name", get(audio::return_audio))
         .layer(trace_layer);
 
     tracing::info!("Listening on {}:{}", cli.host, cli.port);

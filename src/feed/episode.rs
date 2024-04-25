@@ -68,7 +68,7 @@ impl Episode {
         Episode {
             id: rss::GuidBuilder::default().value(&video.id).build(),
             url: format!(
-                "{episode_host_url}ep/{feed_id}/{ep_id}",
+                "{episode_host_url}ep/{feed_id}/{ep_id}.m4a",
                 episode_host_url = cli.episode_url,
                 feed_id = feed_id,
                 ep_id = &video.id

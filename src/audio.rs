@@ -5,19 +5,24 @@ use std::{
 
 use crate::error::{Result, VpodError};
 use axum::response::IntoResponse;
+use color_eyre::eyre::eyre;
 use tower::ServiceExt;
 use ytd_rs::Arg;
 
-#[tracing::instrument(fields(feed_id=feed_id, episode_id=ep_id))]
+#[tracing::instrument(fields(feed_id=feed_id, episode_id=file_name))]
 pub async fn return_audio(
-    axum::extract::Path((feed_id, ep_id)): axum::extract::Path<(String, String)>,
+    axum::extract::Path((feed_id, file_name)): axum::extract::Path<(String, String)>,
     request: axum::extract::Request,
 ) -> Result<impl IntoResponse> {
+    let ep_id = std::path::Path::new(&file_name)
+        .file_stem()
+        .ok_or(eyre!("could not get file stem for episode"))?
+        .to_str()
+        .ok_or(eyre!("could not format episode file id to str"))?;
     let url = format!("https://www.youtube.com/watch?v={ep_id}");
-    let path = format!("{feed_id}/{ep_id}.m4a");
+    let path = format!("{feed_id}/{file_name}");
     let path = std::path::Path::new(&path);
     if !path.exists() {
-        // eprintln!("got here");
         let args = vec![
             // TODO: Implement an enum allowing users to safely
             // add their own options to this list
@@ -30,7 +35,6 @@ pub async fn return_audio(
             Arg::new_with_arg("--output", "%(id)s.m4a"),
         ];
         let channel_dir = &PathBuf::from(&path.parent().unwrap());
-        // eprintln!("{channel_dir:?}");
         let _ytd = ytd_rs::YoutubeDL::new(channel_dir, args, &url)
             .map_err(|_| VpodError::YoutubeDLError)?
             .download();
