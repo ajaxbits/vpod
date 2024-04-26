@@ -4,3 +4,11 @@ builds:
     - '*.x86_64-linux.*'
     - 'packages.aarch64-darwin.*'
     - 'devShell.aarch64-darwin.*'
+servers:
+  - configuration: vpod
+    deployment:
+      type: on-branch
+      branch: main
+  - configuration: vpod
+    deployment:
+      type: on-pull-request

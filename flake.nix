@@ -28,7 +28,7 @@
   };
 
   outputs =
-    inputs:
+    inputs@{ self, ... }:
     inputs.parts.lib.mkFlake { inherit inputs; } {
       systems = import inputs.systems;
       imports = with inputs; [
@@ -118,5 +118,55 @@
             '';
           });
         };
+
+      flake.nixosConfigurations.vpod =
+        { config, ... }:
+        inputs.nixpkgs.lib.nixosSystem (
+          let
+            inherit (inputs.nixpkgs) lib;
+
+            getHostFQDN =
+              nixosConfig:
+              let
+                toplevelStorePath = nixosConfig.config.system.build.toplevel.drvPath;
+                fileName = lib.elemAt (lib.splitString "/" toplevelStorePath) 3;
+                hash = lib.elemAt (lib.splitString "-" fileName) 0;
+              in
+              "${hash}.hash.garnix.me";
+            system = "x86_64-linux";
+          in
+          {
+            inherit system;
+
+            # required for garnix deploy
+            fileSystems."/" = {
+              device = "/dev/sda1";
+              fsType = "ext4";
+            };
+            boot.loader.grub.device = "/dev/sda";
+
+            systemd.services.vpod = {
+              description = "vpod";
+              wantedBy = [ "multi-user.target" ];
+              after = [ "network-online.target" ];
+              environment = {
+                EPISODE_URL = "http://${getHostFQDN self.nixosConfigurations.vpod}";
+                VERBOSITY = 2;
+              };
+              serviceConfig = {
+                Type = "simple";
+                User = "root";
+                ExecStart = "${config.packages.${system}.vpod}/bin/vpod";
+              };
+            };
+            services.nginx = {
+              enable = true;
+              virtualHosts."_".locations."/".proxyPass = "http://localhost:8080";
+            };
+
+            security.sudo.enable = false;
+            environment.defaultPackages = lib.mkForce [ ];
+          }
+        );
     };
 }
