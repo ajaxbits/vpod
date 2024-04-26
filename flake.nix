@@ -2,10 +2,17 @@
   description = "A server for generating podcast feeds from YouTube channels";
 
   inputs = {
-    dream2nix.url = "github:nix-community/dream2nix";
-    nixpkgs.follows = "dream2nix/nixpkgs";
+    nixpkgs.url = "github:nixos/nixpkgs/nixos-unstable";
     latest.url = "github:nixos/nixpkgs";
     treefmt-nix.url = "github:numtide/treefmt-nix";
+    parts = {
+      url = "github:hercules-ci/flake-parts";
+      inputs.nixpkgs-lib.follows = "nixpkgs";
+    };
+    nci = {
+      url = "github:yusdacra/nix-cargo-integration";
+      inputs.nixpkgs.follows = "nixpkgs";
+    };
     systems.url = "github:nix-systems/default";
   };
 
@@ -21,62 +28,89 @@
   };
 
   outputs =
-    inputs@{
-      self,
-      nixpkgs,
-      dream2nix,
-      latest,
-      treefmt-nix,
-      systems,
-      ...
-    }:
-    let
-      system = "x86_64-linux";
+    inputs:
+    inputs.parts.lib.mkFlake { inherit inputs; } {
+      systems = import inputs.systems;
+      imports = with inputs; [
+        treefmt-nix.flakeModule
+        nci.flakeModule
+      ];
 
-      name = "vpod";
-      version = "0.0.3";
-
-      eachSystem = f: nixpkgs.lib.genAttrs (import systems) (system: f nixpkgs.legacyPackages.${system});
-      treefmtEval = eachSystem (pkgs: treefmt-nix.lib.evalModule pkgs ./treefmt.nix);
-    in
-    {
-      packages.${system} = {
-        default = dream2nix.lib.evalModules {
-          packageSets = {
-            nixpkgs = inputs.dream2nix.inputs.nixpkgs.legacyPackages.${system};
-            latest = import latest { inherit system; };
+      perSystem =
+        {
+          config,
+          pkgs,
+          lib,
+          system,
+          self',
+          ...
+        }:
+        let
+          pkgsLatest = import inputs.latest { inherit system; };
+        in
+        {
+          nci.projects.vpod = {
+            path = ./.;
+            profiles.release.runTests = false;
+            depsDrvConfig.mkDerivation = {
+              buildInputs = [ pkgs.openssl ];
+              nativeBuildInputs = [ pkgs.pkg-config ];
+            };
+            drvConfig.mkDerivation = {
+              buildInputs = [ pkgs.openssl ];
+              nativeBuildInputs = [
+                pkgs.makeWrapper
+                pkgs.pkg-config
+              ];
+              postFixup = ''
+                wrapProgram $out/bin/vpod \
+                  --set PATH ${lib.makeBinPath [ pkgsLatest.yt-dlp ]}
+              '';
+            };
           };
 
-          modules = [
-            ./default.nix
+          packages =
+            let
+              inherit (self'.packages) vpod;
+              inherit (pkgs) dockerTools;
+            in
             {
-              inherit name version;
-              paths = {
-                projectRoot = ./.;
-                projectRootFile = "flake.nix";
-                package = ./.;
+              vpod = config.nci.outputs.vpod.packages.release;
+              default = vpod;
+
+              oci-image = dockerTools.buildLayeredImage {
+                inherit (vpod) name;
+                tag = vpod.version;
+                maxLayers = 128;
+                contents = [ dockerTools.caCertificates ];
+                config.Cmd = [ "${vpod}/bin/vpod" ];
               };
-            }
-          ];
-        };
+            };
 
-        oci-image =
-          let
-            inherit (nixpkgs.legacyPackages.${system}) dockerTools;
-          in
-          dockerTools.buildLayeredImage {
-            inherit name;
-            tag = version;
-            maxLayers = 128;
-            contents = [ dockerTools.caCertificates ];
-            config.Cmd = [ "${self.packages.${system}.default}/bin/vpod" ];
+          treefmt.config = {
+            projectRootFile = "flake.nix";
+            programs = {
+              deadnix.enable = true;
+              just.enable = true;
+              nixfmt-rfc-style.enable = true;
+              rustfmt.enable = true;
+              taplo.enable = true;
+            };
           };
-      };
 
-      formatter = eachSystem (pkgs: treefmtEval.${pkgs.system}.config.build.wrapper);
-
-      checks = eachSystem (pkgs: {
-        formatting = treefmtEval.${pkgs.system}.config.build.check self;
-      });
+          devShells.default = config.nci.outputs.vpod.devShell.overrideAttrs (old: {
+            packages =
+              (old.packages or [ ])
+              ++ (with pkgs; [
+                flyctl
+                just
+                pkgsLatest.yt-dlp
+              ]);
+            shellHook = ''
+              ${old.shellHook or ""}
+              export RUST_SRC_PATH=${pkgs.rustPlatform.rustLibSrc}
+            '';
+          });
+        };
     };
 }
